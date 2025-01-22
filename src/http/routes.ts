@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { register } from './controllers/register'
+import { register } from '../utils/register'
 import { authenticate } from './controllers/authenticate'
 
 export async function appRoutes(app: FastifyInstance) {

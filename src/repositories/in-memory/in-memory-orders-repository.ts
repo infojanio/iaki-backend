@@ -17,9 +17,9 @@ export class InMemoryOrdersRepository implements OrdersRepository {
       // Considera apenas pedidos validados
       return cashback.user_id === userId && relatedOrder?.validated_at !== null
     })
-
+    
     const balance = userCashbacks.reduce(
-      (acc, cashback) => acc + cashback.amount,
+      (acc, cashback) => acc + cashback.amount.toNumber(),
       0,
     )
 

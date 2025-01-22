@@ -50,7 +50,7 @@ export class InMemoryProductsRepository implements ProductsRepository {
       description: data.description || null,
       price: new Prisma.Decimal(data.price), // Converte o preço para Decimal.,
       quantity: new Prisma.Decimal(data.quantity), // Converte o preço para Decimal.
-      status: data.status,
+      status: data.status || false,
       image: data.image || null,
       cashbackPercentage: data.cashbackPercentage || 0, // Define um valor padrão caso não seja informado.
       store_id: data.store_id,
