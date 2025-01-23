@@ -39,17 +39,20 @@ export class PrismaProductsRepository implements ProductsRepository {
    * @returns O produto atualizado.
    */
 
-  async update(
-    productId: string,
-    data: {
-      where: Prisma.ProductWhereUniqueInput
-      data: Prisma.ProductUpdateInput
-    },
-  ): Promise<Product> {
-    return prisma.product.update({
-      where: data.where, // Exemplo: { id: 'product_id' }
-      data: data.data, // Exemplo: { name: 'Novo Nome', price: 99.99 }
-    })
+  async update(productId: string, data: Prisma.ProductUncheckedUpdateInput): Promise<Product> {
+    // Valida se o produto existe antes de tentar atualizar
+    const existingProduct = await this.findById(productId);
+    if (!existingProduct) {
+      throw new Error('Product not found');
+    }
+
+    // Atualiza o produto no banco de dados
+    const updatedProduct = await prisma.product.update({
+      where: { id: productId },
+      data,
+    });
+
+    return updatedProduct;
   }
 
   async delete(where: Prisma.ProductWhereUniqueInput): Promise<Product> {

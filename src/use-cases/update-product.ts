@@ -1,12 +1,15 @@
 import { ProductsRepository } from '@/repositories/products-repository'
 import { Product } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
+
+
 
 interface UpdateProductUseCaseRequest {
   productId: string
   name?: string
   description?: string
   price?: number
-  quantity?: number
+  quantity?: number 
   image?: string
   status?: boolean
   cashbackPercentage?: number

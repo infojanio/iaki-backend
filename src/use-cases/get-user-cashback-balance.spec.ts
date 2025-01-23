@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 import { GetUserCashbackBalanceUseCase } from '@/use-cases/get-user-cashback-balance'
 import { InMemoryOrdersRepository } from '@/repositories/in-memory/in-memory-orders-repository'
+import { Prisma } from '@prisma/client'
 
 let ordersRepository: InMemoryOrdersRepository
 let sut: GetUserCashbackBalanceUseCase
@@ -25,21 +26,21 @@ describe('Get User Cashback Balance', () => {
         id: '1',
         user_id: 'user-1',
         order_id: 'order-1',
-        amount: 10,
+        amount: new Prisma.Decimal(10),
         credited_at: new Date(),
       },
       {
         id: '2',
         user_id: 'user-1',
         order_id: 'order-2',
-        amount: 20,
+        amount: new Prisma.Decimal(20),
         credited_at: new Date(),
       },
       {
         id: '3',
         user_id: 'user-2',
         order_id: 'order-3',
-        amount: 15,
+        amount: new Prisma.Decimal(15),
         credited_at: new Date(),
       },
     )
