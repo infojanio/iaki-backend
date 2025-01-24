@@ -1,24 +1,34 @@
-import { InMemoryOrdersRepository } from '@/repositories/in-memory/in-memory-orders-repository'
-import { OrdersRepository } from '@/repositories/orders-repository'
+import { OrdersRepository } from '@/repositories/orders-repository';
+import { CashbacksRepository } from '@/repositories/cashbacks-repository';
 
 interface GetUserCashbackBalanceUseCaseRequest {
-  userId: string
+  userId: string;
 }
 
 interface GetUserCashbackBalanceUseCaseResponse {
-  balance: number
+  balance: number;
 }
 
 export class GetUserCashbackBalanceUseCase {
-  constructor(private ordersRepository: OrdersRepository) {}
+  constructor(
+  //  private ordersRepository: OrdersRepository,
+    private cashbacksRepository: CashbacksRepository
+  ) {}
 
   async execute(
-    request: GetUserCashbackBalanceUseCaseRequest,
+    request: GetUserCashbackBalanceUseCaseRequest
   ): Promise<GetUserCashbackBalanceUseCaseResponse> {
-    const { userId } = request
+    const { userId } = request;
 
-    const balance = await this.ordersRepository.balanceByUserId(userId)
+    // Soma dos cashbacks recebidos
+    const receivedCashback = await this.cashbacksRepository.totalCashbackByUserId(userId);
 
-    return { balance }
+    // Soma dos cashbacks usados
+    const usedCashback = await this.cashbacksRepository.totalUsedCashbackByUserId(userId);
+
+    // Calcula o saldo atual
+    const balance = receivedCashback - usedCashback;
+console.log('Extrato:', balance)
+    return { balance };
   }
 }
