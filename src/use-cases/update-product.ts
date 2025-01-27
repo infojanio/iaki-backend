@@ -1,6 +1,6 @@
 import { ProductsRepository } from '@/repositories/products-repository'
 import { Product } from '@prisma/client'
-import { Decimal } from '@prisma/client/runtime/library'
+
 
 
 
