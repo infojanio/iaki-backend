@@ -4,9 +4,23 @@ import { UsersRepository } from '../users-repository'
 
 export class PrismaUsersRepository implements UsersRepository {
   
-  async create(data: Prisma.UserCreateInput) {
+   /**
+   * Cria um usuário com seus dados pessoais e endereço.
+   *
+   * @param data - Dados do usuário e do endereço.
+   * @returns O usuário criado com os dados do endereço.
+   */
+   async create(data: Prisma.UserCreateInput) {
     const user = await prisma.user.create({
-      data,
+      data: {
+        ...data, // Inclui os dados pessoais
+        address: {
+          create: data.address?.create, // Relaciona o endereço
+        },
+      },
+      include: {
+        address: true, // Retorna os endereços associados ao usuário
+      },
     })
 
     return user

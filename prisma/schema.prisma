@@ -17,7 +17,8 @@ model User {
   phone        String
   role         Role       @default(USER)
   avatar       String?
-  address      Address?
+  //address      Address?
+  address Address[] // Relacionamento com o endereço
   orders       Order[]
   cashbacks    Cashback[]
   created_at   DateTime   @default(now()) @map("created_at")
@@ -31,7 +32,7 @@ model Store {
   slug         String?
   latitude     Decimal
   longitude    Decimal
-  address      Address?
+  address Address[] // Relacionamento com o endereço
   products     Product[]
   orders       Order[]
   paymentTypes PaymentType[]
