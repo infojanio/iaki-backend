@@ -12,7 +12,11 @@ describe('Create Category Use Case', () => {
     const { category } = await sut.execute({
       name: 'category-01',
       image: null,
+<<<<<<< HEAD
       subcategory: "iiss211212",
+=======
+      subcategory: 'iiss211212',
+>>>>>>> master
       created_at: new Date(),
     })
     expect(category.id).toEqual(expect.any(String))

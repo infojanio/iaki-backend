@@ -5,8 +5,52 @@ import { Prisma, Product } from '@prisma/client'
 import { randomUUID } from 'crypto'
 
 export class InMemoryProductsRepository implements ProductsRepository {
+<<<<<<< HEAD
   async update(productId: string, data: Prisma.ProductUncheckedUpdateInput): Promise<Product> {
     const productIndex = this.items.findIndex((item) => item.id === productId);
+=======
+  async update(
+    productId: string,
+    data: Prisma.ProductUncheckedUpdateInput,
+  ): Promise<Product> {
+    const productIndex = this.items.findIndex((item) => item.id === productId)
+    if (productIndex === -1) {
+      throw new Error('Product not found')
+    }
+    // Recupera o produto existente
+    const existingProduct = this.items[productIndex]
+    // Atualiza os campos fornecidos no data
+    const updatedProduct: Product = {
+      ...existingProduct,
+      name: data.name ? (data.name as string) : existingProduct.name,
+      description: data.description
+        ? (data.description as string)
+        : existingProduct.description,
+      price: data.quantity ? (data.price as number) : existingProduct.quantity,
+      quantity: data.quantity
+        ? (data.quantity as number)
+        : existingProduct.quantity,
+
+      image: data.image ? (data.image as string) : existingProduct.image,
+
+      status: data.status ? (data.status as boolean) : existingProduct.status,
+
+      cashbackPercentage: data.cashbackPercentage
+        ? (data.cashbackPercentage as number)
+        : existingProduct.cashbackPercentage,
+      store_id: data.store_id
+        ? (data.store_id as string)
+        : existingProduct.store_id,
+      subcategory_id: data.subcategory_id
+        ? (data.subcategory_id as string)
+        : existingProduct.subcategory_id,
+      created_at: existingProduct.created_at,
+    }
+    // Substitui o produto existente pelo atualizado
+    this.items[productIndex] = updatedProduct
+    return updatedProduct
+  }
+>>>>>>> master
 
     if (productIndex === -1) {
       throw new Error('Product not found');
@@ -74,7 +118,11 @@ export class InMemoryProductsRepository implements ProductsRepository {
       description: data.description || null,
       price: data.price || 0,
       quantity: data.quantity || 0,
+<<<<<<< HEAD
       status: data.status || false,
+=======
+      status: data.status,
+>>>>>>> master
       image: data.image || null,
       cashbackPercentage: data.cashbackPercentage || 0, // Define um valor padrão caso não seja informado.
       store_id: data.store_id,

@@ -15,15 +15,19 @@ interface AddressInput {
 }
 
 interface RegisterUseCaseRequest {
-  id: string
+  //  id: string
   name: string
   email: string
   password: string
   phone: string
   avatar: string
   role: Role
+<<<<<<< HEAD
   address?: AddressInput // Endereço opcional
   created_at: Date
+=======
+  //  created_at: Date
+>>>>>>> master
 }
 
 interface RegisterUseCaseResponse {
@@ -37,12 +41,13 @@ export class RegisterUseCase {
   ) {}
 
   async execute({
-    id,
+    //  id,
     name,
     email,
     password,
     phone,
     avatar,
+<<<<<<< HEAD
     role = 'USER',
     address,
     created_at,
@@ -79,3 +84,32 @@ export class RegisterUseCase {
      return { user }
    }
  }
+=======
+    role,
+  }: //  created_at,
+  RegisterUseCaseRequest): Promise<RegisterUseCaseResponse> {
+    const passwordHash = await hash(password, 6)
+
+    const userWithSameEmail = await this.usersRepository.findByEmail(email)
+
+    if (userWithSameEmail) {
+      throw new UserAlreadyExistsError()
+    }
+
+    //const prismaUsersRepository = new PrismaUsersRepository()
+
+    const user = await this.usersRepository.create({
+      //   id,
+      name,
+      email,
+      passwordHash,
+      phone,
+      avatar,
+      role,
+      //  created_at,
+    })
+
+    return { user }
+  }
+}
+>>>>>>> master

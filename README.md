@@ -12,7 +12,10 @@
 - [x] Deve ser possível cadastrar uma loja.
 - [] Deve ser possível o usuário cadastrar o endereço de sua loja.
 - [x] Deve ser possível cadastrar o produto.
-- [] Deve ser possível cadastrar a categoria do produto.
+- [x] Deve ser possível buscar um produto cadastrado.
+- [x] Deve ser possível atualizar um produto cadastrado.
+- [x] Deve ser possível deletar um produto cadastrado.
+- [x] Deve ser possível cadastrar a categoria do produto.
 - [] Deve ser possível cadastrar a subcategoria do produto.
 - [x] Deve ser possível o usuário consultar o histórico de pedidos.
 - [x] Deve ser possível o usuário realizar pedidos em uma loja.
@@ -24,7 +27,7 @@
 - [ ] Deve ser possível o usuário buscar produtos pelo nome.
 - [x] Deve ser possível validar o pedido (cashback) de um usuário.
 - [ ] Deve ser possível verificar e validar os itens do pedido, assegurando que os itens adicionados no app correspondem aos itens pagos na loja física.
-- [ ] Deve ser possível agregar o cashback validado ao saldo do cliente.
+- [x] Deve ser possível agregar o cashback validado ao saldo do cliente.
 
 ## RNs (Regras de Negócio)
 

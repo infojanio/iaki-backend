@@ -3,7 +3,9 @@ import { OrdersRepository } from '@/repositories/orders-repository'
 import { Order, Prisma, PrismaClient } from '@prisma/client'
 import dayjs from 'dayjs'
 export class PrismaOrdersRepository implements OrdersRepository {
+  private items: Order[] = [] // Garante que é sempre um array
   private prisma = new PrismaClient()
+  //retorna 1 pedido por id
   async findById(id: string) {
     const order = await prisma.order.findUnique({
       where: {
@@ -13,6 +15,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
     return order
   }
 
+  /*
   //encontra pedido feito em 1 dia
   async findByUserIdOnDate(userId: string, date: Date) {
     const startOfTheDay = dayjs(date).startOf('date')
@@ -37,15 +40,32 @@ export class PrismaOrdersRepository implements OrdersRepository {
       where: {
         user_id: userId,
         created_at: {
-          gte: startOfTheHour.toDate(),
-          lte: endOfTheHour.toDate(),
+          gte: startOfTheHour.toDate(), //o pedido foi feito após o início desse horário
+          lte: endOfTheHour.toDate(), //o pedido foi feito antes do início desse horário
         },
       },
     })
 
     return order
   }
+*/
+  //encontra pedido feito em 1 hora
+  async findByUserIdLastHour(userId: string): Promise<Order | null> {
+    if (!this.items || !Array.isArray(this.items)) {
+      return null
+    }
 
+    const oneHourAgo = dayjs().subtract(1, 'hour')
+
+    const orderInLastHour = this.items.find((order) => {
+      return (
+        order.user_id === userId && dayjs(order.created_at).isAfter(oneHourAgo) // Deve estar dentro da última hora
+      )
+    })
+
+    return orderInLastHour || null
+  }
+  //retorna vários pedidos por id cliente
   async findManyByUserId(userId: string, page: number) {
     const orders = await prisma.order.findMany({
       where: {
@@ -56,6 +76,8 @@ export class PrismaOrdersRepository implements OrdersRepository {
     })
     return orders
   }
+
+  //conta n. pedidos por userId
   async countByUserId(userId: string) {
     const count = await prisma.order.count({
       where: {

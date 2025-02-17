@@ -1,10 +1,15 @@
+<<<<<<< HEAD
 import {
   AddressesRepository,
 } from '@/repositories/addresses-repository'
+=======
+import { AddressesRepository } from '@/repositories/addresses-repository'
+>>>>>>> master
 
 import { Prisma, Address } from '@prisma/client'
 import { randomUUID } from 'crypto'
 
+<<<<<<< HEAD
 
 export class InMemoryAddressesRepository implements AddressesRepository {
   public items: Address[] = []
@@ -14,6 +19,13 @@ export class InMemoryAddressesRepository implements AddressesRepository {
   async create(data: Prisma.AddressUncheckedCreateInput): Promise<Address> {
     const address: Address = {
 
+=======
+export class InMemoryAddressesRepository implements AddressesRepository {
+  public items: Address[] = []
+
+  async create(data: Prisma.AddressUncheckedCreateInput): Promise<Address> {
+    const address: Address = {
+>>>>>>> master
       id: data.id ?? randomUUID(),
       street: data.street || '',
       city: data.city || '',
@@ -32,6 +44,7 @@ export class InMemoryAddressesRepository implements AddressesRepository {
     return this.items.find((address) => address.id === addressId) || null
   }
 
+<<<<<<< HEAD
 
   async update(
     addressId: string,
@@ -39,6 +52,11 @@ export class InMemoryAddressesRepository implements AddressesRepository {
   ): Promise<Address> {
     const addressIndex = this.items.findIndex(
       (address) => address.id === addressId
+=======
+  async update(addressId: string, data: Partial<Address>): Promise<Address> {
+    const addressIndex = this.items.findIndex(
+      (address) => address.id === addressId,
+>>>>>>> master
     )
 
     if (addressIndex === -1) {
@@ -55,4 +73,7 @@ export class InMemoryAddressesRepository implements AddressesRepository {
     return updatedAddress
   }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> master

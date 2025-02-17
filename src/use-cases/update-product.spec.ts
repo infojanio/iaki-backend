@@ -18,7 +18,11 @@ describe('Update Product Use Case', () => {
       id: 'product-id-1',
       name: 'Tênis',
       description: 'Nike, n.40',
+<<<<<<< HEAD
       price: 10,
+=======
+      price: 210,
+>>>>>>> master
       quantity: 10,
       image: 'nike.png',
       status: false,
@@ -34,15 +38,23 @@ describe('Update Product Use Case', () => {
       name: 'Tênis Atualizado',
       description: 'Nike, n.40',
       price: 220,
+<<<<<<< HEAD
       quantity: 100 ,
+=======
+      quantity: 100,
+>>>>>>> master
       image: 'nike.png',
       status: true,
       cashbackPercentage: 32,
       store_id: '1453sdf1555',
       subcategory_id: '122355113fd',
     })
+<<<<<<< HEAD
     console.log('display:',updatedProduct)
 
+=======
+    console.log('display:', updatedProduct)
+>>>>>>> master
     // Assert: Verifica que os dados foram atualizados
     expect(updatedProduct.id).toBe(product.id)
     expect(updatedProduct.name).toBe('Tênis Atualizado')
@@ -50,7 +62,11 @@ describe('Update Product Use Case', () => {
     expect(updatedProduct.store_id).toBe('1453sdf1555')
     expect(updatedProduct.cashbackPercentage).toBe(32)
     expect(updatedProduct.price).toBe(220)
+<<<<<<< HEAD
    expect(updatedProduct.quantity).toBe(100)
+=======
+    expect(updatedProduct.quantity).toBe(100)
+>>>>>>> master
   })
 
   it('Deve lançar um erro ao tentar atualizar um produto inexistente.', async () => {

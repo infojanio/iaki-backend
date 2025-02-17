@@ -32,6 +32,7 @@ export class PrismaProductsRepository implements ProductsRepository {
     return products
   }
 
+<<<<<<< HEAD
   /**
    * Atualiza um produto no banco de dados.
    *
@@ -46,13 +47,29 @@ export class PrismaProductsRepository implements ProductsRepository {
       throw new Error('Product not found');
     }
 
+=======
+  async update(
+    productId: string,
+    data: Prisma.ProductUncheckedUpdateInput,
+  ): Promise<Product> {
+    // Valida se o produto existe antes de tentar atualizar
+    const existingProduct = await this.findById(productId)
+    if (!existingProduct) {
+      throw new Error('Product not found')
+    }
+>>>>>>> master
     // Atualiza o produto no banco de dados
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
       data,
+<<<<<<< HEAD
     });
 
     return updatedProduct;
+=======
+    })
+    return updatedProduct
+>>>>>>> master
   }
 
   async delete(where: Prisma.ProductWhereUniqueInput): Promise<Product> {
