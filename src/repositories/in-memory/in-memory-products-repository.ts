@@ -5,10 +5,6 @@ import { Prisma, Product } from '@prisma/client'
 import { randomUUID } from 'crypto'
 
 export class InMemoryProductsRepository implements ProductsRepository {
-<<<<<<< HEAD
-  async update(productId: string, data: Prisma.ProductUncheckedUpdateInput): Promise<Product> {
-    const productIndex = this.items.findIndex((item) => item.id === productId);
-=======
   async update(
     productId: string,
     data: Prisma.ProductUncheckedUpdateInput,
@@ -50,7 +46,6 @@ export class InMemoryProductsRepository implements ProductsRepository {
     this.items[productIndex] = updatedProduct
     return updatedProduct
   }
->>>>>>> master
 
     if (productIndex === -1) {
       throw new Error('Product not found');
@@ -118,11 +113,7 @@ export class InMemoryProductsRepository implements ProductsRepository {
       description: data.description || null,
       price: data.price || 0,
       quantity: data.quantity || 0,
-<<<<<<< HEAD
-      status: data.status || false,
-=======
       status: data.status,
->>>>>>> master
       image: data.image || null,
       cashbackPercentage: data.cashbackPercentage || 0, // Define um valor padrão caso não seja informado.
       store_id: data.store_id,

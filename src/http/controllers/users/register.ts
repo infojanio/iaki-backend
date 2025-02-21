@@ -39,7 +39,7 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
       role,
       avatar,
       //address_id,
-      // created_at,
+      // created_at: new Date(),
     })
   } catch (error) {
     if (error instanceof UserAlreadyExistsError) {

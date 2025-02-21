@@ -23,7 +23,7 @@ describe('Register Use Case', () => {
       avatar: 'foto.jpg',
 
       role: 'USER',
-      //  created_at: new Date(),
+         created_at: new Date(),
     })
 
     expect(user.id).toEqual(expect.any(String)) //retorna qualquer id do tipo string
@@ -39,7 +39,7 @@ describe('Register Use Case', () => {
       avatar: 'foto.jpg',
 
       role: 'USER',
-      //   created_at: new Date(),
+          created_at: new Date(),
     })
 
     const isPasswordCorrectlyHashed = await compare('123456', user.passwordHash)
@@ -57,7 +57,7 @@ describe('Register Use Case', () => {
       phone: '6296695513',
       avatar: 'foto.jpg',
       role: 'USER',
-      //   created_at: new Date(),
+        created_at: new Date(),
     })
 
     //sempre usar o await quando o retorno for .rejects.toBeInstaceOf
@@ -70,7 +70,7 @@ describe('Register Use Case', () => {
         phone: '6296695513',
         avatar: 'foto.jpg',
         role: 'USER',
-        //    created_at: new Date(),
+            created_at: new Date(),
       }),
     ).rejects.toBeInstanceOf(UserAlreadyExistsError) //rejeita e retorna erro
   })

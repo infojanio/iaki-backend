@@ -3,22 +3,13 @@ import { Prisma, User } from '@prisma/client'
 import { UsersRepository } from '../users-repository'
 
 export class PrismaUsersRepository implements UsersRepository {
-<<<<<<< HEAD
-  
-   /**
-=======
   /**
->>>>>>> master
    * Cria um usuário com seus dados pessoais e endereço.
    *
    * @param data - Dados do usuário e do endereço.
    * @returns O usuário criado com os dados do endereço.
    */
-<<<<<<< HEAD
-   async create(data: Prisma.UserCreateInput) {
-=======
   async create(data: Prisma.UserCreateInput) {
->>>>>>> master
     const user = await prisma.user.create({
       data: {
         ...data, // Inclui os dados pessoais
@@ -33,11 +24,6 @@ export class PrismaUsersRepository implements UsersRepository {
 
     return user
   }
-<<<<<<< HEAD
-  
-=======
-
->>>>>>> master
   async findById(id: string) {
     const user = await prisma.user.findUnique({
       where: {
@@ -55,9 +41,5 @@ export class PrismaUsersRepository implements UsersRepository {
       },
     })
     return user
-<<<<<<< HEAD
-  }}
-=======
   }
 }
->>>>>>> master
