@@ -1,25 +1,29 @@
+import dotenv from 'dotenv';
+
 import fastifyJwt from '@fastify/jwt'
+import fastifyCookie from '@fastify/cookie'
 import fastify from 'fastify'
 import { usersRoutes } from '@/http/controllers/users/routes'
 import { storesRoutes } from '@/http/controllers/stores/routes'
 import { ordersRoutes } from './http/controllers/orders/routes'
 import { ZodError } from 'zod'
-import { env } from './env'
-import fastifyCookie from '@fastify/cookie'
+import { env } from './env';
+
+
+dotenv.config();
 
 export const app = fastify()
 
 app.register(fastifyJwt, {
-  secret: env.JWT_SECRET,
-
+  secret: process.env.JWT_SECRET,
   cookie: {
     cookieName: 'refreshToken',
     signed: false,
   },
   sign: {
-    expiresIn: '30m',
+    expiresIn: '10m',
   },
-})
+});
 
 app.register(fastifyCookie)
 

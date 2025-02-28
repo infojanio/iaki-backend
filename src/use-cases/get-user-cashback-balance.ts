@@ -24,13 +24,6 @@ export class GetUserCashbackBalanceUseCase {
       userId,
     )
 
-    // Soma dos cashbacks usados
-    const usedCashback = await this.cashbacksRepository.totalUsedCashbackByUserId(
-      userId,
-    )
-
-    // Calcula o saldo atual
-    const balance = receivedCashback - usedCashback
 
     // Soma dos cashbacks usados
     const usedCashback = await this.cashbacksRepository.totalUsedCashbackByUserId(userId);
