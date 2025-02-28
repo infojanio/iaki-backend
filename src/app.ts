@@ -7,7 +7,7 @@ import { usersRoutes } from '@/http/controllers/users/routes'
 import { storesRoutes } from '@/http/controllers/stores/routes'
 import { ordersRoutes } from './http/controllers/orders/routes'
 import { ZodError } from 'zod'
-import { env } from './env';
+import { env } from '@/env';
 
 
 dotenv.config();
@@ -15,17 +15,10 @@ dotenv.config();
 export const app = fastify()
 
 app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET,
-  cookie: {
-    cookieName: 'refreshToken',
-    signed: false,
-  },
-  sign: {
-    expiresIn: '10m',
-  },
+  secret: process.env.JWT_SECRET!,
+ 
 });
 
-app.register(fastifyCookie)
 
 app.register(usersRoutes)
 app.register(storesRoutes)
