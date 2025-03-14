@@ -3,7 +3,7 @@ import { app } from '@/app'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createAndAuthenticateUser } from '@/utils/test/create-and-authenticate-user'
 import { prisma } from '@/lib/prisma'
-describe('Validate Check-in (e2e)', () => {
+describe('Validate Order (e2e)', () => {
   beforeAll(async () => {
     await app.ready()
   })
@@ -11,7 +11,7 @@ describe('Validate Check-in (e2e)', () => {
     await app.close()
   })
   it('should be able to validate a order', async () => {
-    const { token } = await createAndAuthenticateUser(app)
+    const { accessToken } = await createAndAuthenticateUser(app, true)
     const user = await prisma.user.findFirstOrThrow()
     const store = await prisma.store.create({
       data: {
@@ -25,19 +25,27 @@ describe('Validate Check-in (e2e)', () => {
       data: {
         store_id: store.id,
         user_id: user.id,
-        totalAmount: 0,
+        totalAmount: 100,
+        validated_at: null,
+        status: 'PENDING',
+        created_at: new Date(),
       },
     })
     const response = await request(app.server)
       .patch(`/orders/${order.id}/validate`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send()
+
+    console.log('🔵 Response:', response.statusCode, response.body)
+
     expect(response.statusCode).toEqual(204)
     order = await prisma.order.findUniqueOrThrow({
       where: {
         id: order.id,
       },
     })
+    console.log('✅ Pedido atualizado:', order)
+
     expect(order.validated_at).toEqual(expect.any(Date))
   })
 })

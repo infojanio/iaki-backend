@@ -1,16 +1,19 @@
+import { prisma } from '@/lib/prisma'
 import {
   FindManyNearbyParams,
   StoresRepository,
 } from '@/repositories/stores-repository'
 import { getDistanceBetweenCoordinates } from '@/utils/get-distance-between-coordinates'
 
-import { Prisma, Store } from '@prisma/client'
+import { OrderItem, Prisma, Store } from '@prisma/client'
 import { randomUUID } from 'crypto'
 
 export class InMemoryStoresRepository implements StoresRepository {
+  public stores: Store[] = []
+
   //busca lojas próximas até 15 km
   async findManyNearby(params: FindManyNearbyParams) {
-    return this.items.filter((item) => {
+    return this.stores.filter((item) => {
       const distance = getDistanceBetweenCoordinates(
         { latitude: params.latitude, longitude: params.longitude },
         {
@@ -23,17 +26,20 @@ export class InMemoryStoresRepository implements StoresRepository {
     })
   }
 
-  public items: Store[] = []
-  async findById(id: string) {
-    const store = this.items.find((item) => item.id === id)
-    if (!store) {
-      return null
-    }
-    return store
+  async findById(id: string): Promise<Store | null> {
+    const store = this.stores.find((store) => store.id === id)
+    console.log('Buscando loja com ID:', id, 'Resultado:', store)
+    return store ?? null
+  }
+
+  async findByOrderId(orderId: string): Promise<OrderItem[]> {
+    return prisma.orderItem.findMany({
+      where: { order_id: orderId },
+    })
   }
 
   async searchMany(query: string, page: number) {
-    return this.items
+    return this.stores
       .filter((item) => item.name.includes(query))
       .slice((page - 1) * 20, page * 20)
   }
@@ -47,7 +53,7 @@ export class InMemoryStoresRepository implements StoresRepository {
       longitude: new Prisma.Decimal(data.longitude.toString()),
       created_at: new Date(),
     }
-    this.items.push(store)
+    this.stores.push(store)
 
     return store
   }

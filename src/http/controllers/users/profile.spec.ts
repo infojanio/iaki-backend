@@ -11,7 +11,11 @@ describe('Profile (e2e)', () => {
     await app.close()
   })
   it('should be able to get user profile', async () => {
+<<<<<<< HEAD
     const { accessToken } = await createAndAuthenticateUser(app)
+=======
+    const { accessToken } = await createAndAuthenticateUser(app, true)
+>>>>>>> origin/master
 
     const profileResponse = await request(app.server)
       .get('/me')

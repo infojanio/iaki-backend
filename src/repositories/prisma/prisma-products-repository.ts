@@ -1,12 +1,14 @@
 import { prisma } from '@/lib/prisma'
 import { Product, Prisma } from '@prisma/client'
 import { ProductsRepository } from '../products-repository'
+import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 
 export class PrismaProductsRepository implements ProductsRepository {
   async create(data: Prisma.ProductUncheckedCreateInput): Promise<Product> {
     const product = await prisma.product.create({
       data,
     })
+    console.log('📦 Dados recebidos para criar produto:', data) // 🛠️ Log antes de criar
     return product
   }
 
@@ -17,6 +19,44 @@ export class PrismaProductsRepository implements ProductsRepository {
       },
     })
     return product
+  }
+
+  async findByIds(ids: string[]): Promise<Product[]> {
+    return prisma.product.findMany({
+      where: {
+        id: { in: ids }, // Busca produtos cujos IDs estão na lista
+      },
+    })
+  }
+
+  async findByStoreId(store_id: string): Promise<Product[] | null> {
+    const product = await prisma.product.findMany({
+      where: {
+        store_id,
+      },
+    })
+    return product
+  }
+
+  async findBySubcategoryId(subcategory_id: string): Promise<Product[] | null> {
+    const product = await prisma.product.findMany({
+      where: {
+        subcategory_id,
+      },
+    })
+    return product
+  }
+
+  async updateStock(id: string, quantity: number): Promise<Product> {
+    const productUpdate = await prisma.product.update({
+      where: { id },
+      data: {
+        quantity: {
+          decrement: quantity, // Reduz o estoque
+        },
+      },
+    })
+    return productUpdate
   }
 
   async searchMany(search: string, page: number): Promise<Product[]> {
@@ -33,20 +73,17 @@ export class PrismaProductsRepository implements ProductsRepository {
   }
 
   async update(
-    productId: string,
+    product_id: string,
     data: Prisma.ProductUncheckedUpdateInput,
   ): Promise<Product> {
-    // Valida se o produto existe antes de tentar atualizar
-    const existingProduct = await this.findById(productId)
-    if (!existingProduct) {
-      throw new Error('Product not found')
+    try {
+      return await prisma.product.update({
+        where: { id: product_id },
+        data,
+      })
+    } catch (error) {
+      throw new ResourceNotFoundError()
     }
-    // Atualiza o produto no banco de dados
-    const updatedProduct = await prisma.product.update({
-      where: { id: productId },
-      data,
-    })
-    return updatedProduct
   }
 
   async delete(where: Prisma.ProductWhereUniqueInput): Promise<Product> {
@@ -58,7 +95,7 @@ export class PrismaProductsRepository implements ProductsRepository {
 
     return prisma.product.update({
       where,
-      data: { status: true }, // Marca como "deletado"
+      data: { status: false }, // Marca como "deletado"
     })
   }
 }

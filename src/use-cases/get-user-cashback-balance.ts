@@ -1,36 +1,48 @@
 import { CashbacksRepository } from '@/repositories/cashbacks-repository'
+import { Decimal } from '@prisma/client/runtime/library'
 
 interface GetUserCashbackBalanceUseCaseRequest {
-  userId: string;
+  user_id: string
 }
 
 interface GetUserCashbackBalanceUseCaseResponse {
-  balance: number;
+  totalReceived: number
+  totalUsed: number
+  balance: number
 }
 
 export class GetUserCashbackBalanceUseCase {
-  constructor(
-    //  private ordersRepository: OrdersRepository,
-    private cashbacksRepository: CashbacksRepository,
-  ) {}
+  constructor(private cashbacksRepository: CashbacksRepository) {}
 
-  async execute(
-    request: GetUserCashbackBalanceUseCaseRequest
-  ): Promise<GetUserCashbackBalanceUseCaseResponse> {
-    const { userId } = request;
-
-    // Soma dos cashbacks recebidos
-    const receivedCashback = await this.cashbacksRepository.totalCashbackByUserId(
-      userId,
+  async execute({
+    user_id,
+  }: GetUserCashbackBalanceUseCaseRequest): Promise<
+    GetUserCashbackBalanceUseCaseResponse
+  > {
+    //Antes de chamar .toNumber(), verifique se a variável é do tipo Decimal
+    const totalCashbackRaw = await this.cashbacksRepository.totalCashbackByUserId(
+      user_id,
+    )
+    const usedCashbackRaw = await this.cashbacksRepository.totalUsedCashbackByUserId(
+      user_id,
     )
 
+    //Se for, converta para number; caso contrário, use o valor diretamente
+    const totalCashback =
+      totalCashbackRaw instanceof Decimal
+        ? totalCashbackRaw.toNumber()
+        : totalCashbackRaw
+    const usedCashback =
+      usedCashbackRaw instanceof Decimal
+        ? usedCashbackRaw.toNumber()
+        : usedCashbackRaw
 
-    // Soma dos cashbacks usados
-    const usedCashback = await this.cashbacksRepository.totalUsedCashbackByUserId(userId);
+    const balance = totalCashback - usedCashback
 
-    // Calcula o saldo atual
-    const balance = receivedCashback - usedCashback;
-console.log('Extrato:', balance)
-    return { balance };
+    return {
+      totalReceived: totalCashback,
+      totalUsed: usedCashback,
+      balance,
+    }
   }
 }

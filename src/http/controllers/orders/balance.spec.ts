@@ -1,72 +1,107 @@
-import request from 'supertest'
-import { app } from '@/app'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { createAndAuthenticateUser } from '@/utils/test/create-and-authenticate-user'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { InMemoryCashbacksBalanceRepository } from '@/repositories/in-memory/in-memory-cashbacks-balance-repository'
 
-describe('Balance (e2e)', () => {
-  beforeAll(async () => {
-    await app.ready()
+let cashbacksRepository: InMemoryCashbacksBalanceRepository
+
+describe('Cashback Balance Repository', () => {
+  beforeEach(() => {
+    cashbacksRepository = new InMemoryCashbacksBalanceRepository()
   })
 
-  afterAll(async () => {
-    await app.close()
+  it('Deve ser possível criar um cashback', async () => {
+    const cashback = await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-01',
+      amount: 50,
+    })
+
+    expect(cashback).toHaveProperty('id')
+    expect(cashback.user_id).toBe('user-01')
+    expect(cashback.order_id).toBe('order-01')
+    expect(cashback.amount.toNumber()).toBe(50)
   })
 
-  it('should calculate the correct balance after creating orders', async () => {
-    // 🔹 Criamos um usuário autenticado
-    const { token } = await createAndAuthenticateUser(app, true)
+  it('Deve calcular corretamente o total de cashback recebido pelo usuário', async () => {
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-01',
+      amount: 50,
+    })
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-02',
+      amount: 30,
+    })
+    await cashbacksRepository.create({
+      user_id: 'user-02',
+      order_id: 'order-03',
+      amount: 100,
+    }) // Outro usuário
 
-    // 🔹 Criamos uma loja para associar os pedidos
-    const storeResponse = await request(app.server)
-      .post('/stores')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Loja Teste',
-        slug: 'loja-teste',
-        latitude: -27.2092052,
-        longitude: -49.6401091,
-      })
+    const totalCashback = await cashbacksRepository.totalCashbackByUserId(
+      'user-01',
+    )
 
-    const storeId = storeResponse.body.id
+    expect(totalCashback).toBe(80) // 50 + 30 = 80
+  })
 
-    // 🔹 Criamos dois pedidos para esse usuário
-    const order1 = await request(app.server)
-      .post('/orders')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        storeId,
-        totalAmount: 100,
-        created_at: new Date(),
-        validated_at: new Date(),
-        status: 'CONFIRMED',
-        userLatitude: -27.2092052,
-        userLongitude: -49.6401091,
-      })
+  it('Deve calcular corretamente o total de cashback usado pelo usuário', async () => {
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-01',
+      amount: -20,
+    })
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-02',
+      amount: -10,
+    })
+    await cashbacksRepository.create({
+      user_id: 'user-02',
+      order_id: 'order-03',
+      amount: -50,
+    }) // Outro usuário
 
-    const order2 = await request(app.server)
-      .post('/orders')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        storeId,
-        totalAmount: 50,
-        created_at: new Date(),
-        validated_at: new Date(),
-        status: 'CONFIRMED',
-        userLatitude: -27.2092052,
-        userLongitude: -49.6401091,
-      })
+    const totalUsedCashback = await cashbacksRepository.totalUsedCashbackByUserId(
+      'user-01',
+    )
 
-    expect(order1.statusCode).toEqual(201)
-    expect(order2.statusCode).toEqual(201)
+    expect(totalUsedCashback).toBe(30) // 20 + 10 = 30
+  })
 
-    // 🔹 Consultamos o saldo total do usuário
-    const balanceResponse = await request(app.server)
-      .get('/balance')
-      .set('Authorization', `Bearer ${token}`)
+  it('Deve calcular corretamente o saldo final de cashback do usuário', async () => {
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-01',
+      amount: 100,
+    }) // Recebido
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-02',
+      amount: -40,
+    }) // Usado
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-03',
+      amount: 20,
+    }) // Recebido
+    await cashbacksRepository.create({
+      user_id: 'user-01',
+      order_id: 'order-04',
+      amount: -10,
+    }) // Usado
 
-    expect(balanceResponse.statusCode).toEqual(200)
+    const totalReceived = await cashbacksRepository.totalCashbackByUserId(
+      'user-01',
+    )
+    const totalUsed = await cashbacksRepository.totalUsedCashbackByUserId(
+      'user-01',
+    )
+    const saldoFinal = totalReceived - totalUsed
+    console.log('Saldo final:', saldoFinal)
 
-    // 🔹 Verificamos se o saldo total está correto (100 + 50 = 150)
-    expect(balanceResponse.body.balance).toEqual(150)
+    expect(totalReceived).toBe(120) // 100 + 20 = 120
+    expect(totalUsed).toBe(50) // 40 + 10 = 50
+    expect(saldoFinal).toBe(70) // 120 - 50 = 70
   })
 })

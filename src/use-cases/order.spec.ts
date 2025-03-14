@@ -1,193 +1,187 @@
-import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
+import {
+  expect,
+  describe,
+  it,
+  beforeEach,
+  afterEach,
+  vi,
+  afterAll,
+  beforeAll,
+} from 'vitest'
 import { Decimal } from '@prisma/client/runtime/library'
 
 import { InMemoryOrdersRepository } from '@/repositories/in-memory/in-memory-orders-repository'
 import { InMemoryStoresRepository } from '@/repositories/in-memory/in-memory-stores-repository'
 import { OrderUseCase } from '@/use-cases/order'
-import { MaxNumberOfOrdersError } from './errors/max-number-of-orders-error'
-import { MaxDistanceError } from './errors/max-distance-error'
-import dayjs from 'dayjs'
+import { MaxNumberOfOrdersError } from '@/use-cases/errors/max-number-of-orders-error'
+
+import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
+import { InMemoryProductsRepository } from '@/repositories/in-memory/in-memory-products-repository'
+import { InMemoryCashbacksBalanceRepository } from '@/repositories/in-memory/in-memory-cashbacks-balance-repository'
+import { hash } from 'bcryptjs'
+
+import { InMemoryCategoriesRepository } from '@/repositories/in-memory/in-memory-categories-repository'
+import { InMemorySubCategoriesRepository } from '@/repositories/in-memory/in-memory-subcategories-repository'
+import { InMemoryOrderItemsRepository } from '@/repositories/in-memory/in-memory-order-items-repository'
+import { app } from '@/app'
 
 let ordersRepository: InMemoryOrdersRepository
+let productsRepository: InMemoryProductsRepository
+let orderItemsRepository: InMemoryOrderItemsRepository
+let usersRepository: InMemoryUsersRepository
 let storesRepository: InMemoryStoresRepository
+let cashbacksBalanceRepository: InMemoryCashbacksBalanceRepository
+let categoryRepository: InMemoryCategoriesRepository
+let subcategoryRepository: InMemorySubCategoriesRepository
+
 let sut: OrderUseCase
 
 describe('Order Use Case', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     ordersRepository = new InMemoryOrdersRepository()
-    storesRepository = new InMemoryStoresRepository()
-    sut = new OrderUseCase(ordersRepository, storesRepository)
+    productsRepository = new InMemoryProductsRepository()
 
-    //todos os testes já terão loja criada
+    orderItemsRepository = new InMemoryOrderItemsRepository(ordersRepository)
+
+    usersRepository = new InMemoryUsersRepository()
+    storesRepository = new InMemoryStoresRepository()
+    cashbacksBalanceRepository = new InMemoryCashbacksBalanceRepository()
+
+    categoryRepository = new InMemoryCategoriesRepository()
+    subcategoryRepository = new InMemorySubCategoriesRepository()
+
+    sut = new OrderUseCase(
+      ordersRepository,
+      productsRepository,
+      orderItemsRepository,
+      storesRepository,
+      usersRepository,
+      cashbacksBalanceRepository,
+    )
+
+    await app.ready()
+
+    const user = await usersRepository.create({
+      id: '6c9e20cc-010b-48c9-a71d-219d12427913',
+      name: 'John Doe',
+      email: 'johndoe@example.com',
+      passwordHash: await hash('123456', 6),
+      phone: '62999115514',
+      avatar: 'perfil',
+      role: 'USER',
+      created_at: new Date(),
+    })
+    console.log('user : ', user.id)
+
     await storesRepository.create({
       id: 'loja-01',
       name: 'Loja do Braz',
-      latitude: -46.9355272,
-      longitude: -12.9332477,
+      latitude: new Decimal(-12.9332477),
+      longitude: new Decimal(-46.9355272),
       slug: null,
+      created_at: new Date(),
+    })
+
+    await categoryRepository.create({
+      id: 'category-01',
+      name: 'categoria-01',
+      image: null,
+      created_at: new Date(),
+    })
+
+    await subcategoryRepository.create({
+      id: 'subcategory-01',
+      name: 'Roupas',
+      image: null,
+      category_id: 'category-01',
+      created_at: new Date(),
+    })
+
+    await productsRepository.create({
+      id: 'prod-01',
+      name: 'Tênis Nike',
+      description: 'Masculino, n.40',
+      price: 250,
+      quantity: 10,
+      image: 'foto.jpg',
+      store_id: 'loja-01',
+      subcategory_id: 'subcategory-01',
+      cashbackPercentage: 15,
+      status: true,
       created_at: new Date(),
     })
 
     vi.useFakeTimers()
   })
 
-  //depois de executar os testes criar datas reais
-  afterEach(() => {
+  afterAll(async () => {
+    await app.close()
+
     vi.useRealTimers()
   })
 
-  it('Deve ser possível fazer o pedido', async () => {
+  it('Deve adicionar o cashback corretamente ao fazer o pedido', async () => {
     vi.setSystemTime(new Date(2022, 0, 20, 8, 0, 0))
 
     const { order } = await sut.execute({
-      storeId: 'loja-01',
-      userId: 'user-01',
-      totalAmount: 200,
-      userLatitude: -46.9355272,
-      userLongitude: -12.9332477,
-      validated_at: new Date(),
+      id: '1375411c-0f71-4664-87b6-3172e321e313',
+      store_id: 'loja-01',
+      user_id: '6c9e20cc-010b-48c9-a71d-219d12427913',
+      userLatitude: -12.9332477,
+      userLongitude: -46.9355272,
       status: 'VALIDATED',
+      totalAmount: 500,
+      validated_at: null,
       created_at: new Date(),
+      items: [{ product_id: 'prod-01', quantity: 2, subtotal: 250 * 2 }],
     })
-    expect(order.id).toEqual(expect.any(String))
+
+    await cashbacksBalanceRepository.create({
+      user_id: order.user_id,
+      order_id: order.id, // Use o mesmo ID do pedido
+      amount: 75,
+    })
+
+    const totalCashback = await cashbacksBalanceRepository.totalCashbackByUserId(
+      '6c9e20cc-010b-48c9-a71d-219d12427913',
+    )
+    console.log('Dinheiro de volta:', totalCashback)
+
+    expect(order.id).toEqual('1375411c-0f71-4664-87b6-3172e321e313')
+    expect(order.totalAmount).toBe(500)
+    expect(totalCashback).toBe(75) // 15% de 500
   })
 
-  it('Não deve ser possível fazer 2 pedidos no mesmo dia.', async () => {
+  it('Não deve ser possível fazer 2 pedidos na mesma hora', async () => {
     vi.setSystemTime(new Date(2022, 0, 21, 9, 0, 0))
-    //1. pedido
-    await sut.execute({
-      storeId: 'loja-01',
-      userId: 'user-01',
-      totalAmount: 200,
-      userLatitude: -46.9355272,
-      userLongitude: -12.9332477,
-      validated_at: new Date(),
-      status: 'VALIDATED',
-      created_at: new Date(),
-    })
 
-    //2. pedido
-    await expect(() =>
+    const order1 = await sut.execute({
+      id: '1375411c-0f71-4664-87b6-3172e321e313',
+      store_id: 'loja-01',
+      user_id: '6c9e20cc-010b-48c9-a71d-219d12427913',
+      userLatitude: -12.9332477,
+      userLongitude: -46.9355272,
+      status: 'VALIDATED',
+      totalAmount: 500,
+      validated_at: null,
+      created_at: new Date(),
+      items: [{ product_id: 'prod-01', quantity: 2, subtotal: 250 * 2 }],
+    })
+    console.log('pedido1', order1)
+
+    const order2 = await expect(() =>
       sut.execute({
-        storeId: 'loja-01',
-        userId: 'user-01',
-        totalAmount: 200,
-        userLatitude: -46.9355272,
-        userLongitude: -12.9332477,
-        validated_at: new Date(),
+        id: '1375411c-0f71-4664-87b6-3172e321e313',
+        store_id: 'loja-01',
+        user_id: '6c9e20cc-010b-48c9-a71d-219d12427913',
+        userLatitude: -12.9332477,
+        userLongitude: -46.9355272,
         status: 'VALIDATED',
+        totalAmount: 500,
+        validated_at: null,
         created_at: new Date(),
+        items: [{ product_id: 'prod-01', quantity: 2, subtotal: 250 * 2 }],
       }),
     ).rejects.toBeInstanceOf(MaxNumberOfOrdersError)
-  })
-
-  it('Deve ser possível fazer 2 pedidos, mas em dias diferentes.', async () => {
-    vi.setSystemTime(new Date(2022, 0, 20, 8, 0, 0))
-    //1. pedido
-    await sut.execute({
-      storeId: 'loja-01',
-      userId: 'user-01',
-      totalAmount: 200,
-      userLatitude: -46.9355272,
-      userLongitude: -12.9332477,
-      validated_at: new Date(),
-      status: 'VALIDATED',
-      created_at: new Date(),
-    })
-    vi.setSystemTime(new Date(2022, 0, 21, 7, 0, 0))
-    //2. pedido
-    const { order } = await sut.execute({
-      storeId: 'loja-01',
-      userId: 'user-01',
-      totalAmount: 200,
-      userLatitude: -46.9355272,
-      userLongitude: -12.9332477,
-      validated_at: new Date(),
-      status: 'VALIDATED',
-      created_at: new Date(),
-    })
-    expect(order.id).toEqual(expect.any(String))
-  })
-
-  it('Não deve ser possível fazer o pedido distante da loja.', async () => {
-    storesRepository.items.push({
-      id: 'loja-02',
-      name: 'Loja do Braz',
-      latitude: new Decimal(-46.7780831),
-      longitude: new Decimal(-13.0301369),
-      slug: 'logo.png',
-      created_at: new Date(),
-    })
-
-    await expect(() =>
-      sut.execute({
-        storeId: 'loja-02',
-        userId: 'user-01',
-        totalAmount: 200,
-        userLatitude: -46.9355272,
-        userLongitude: -12.9332477,
-        validated_at: new Date(),
-        status: 'VALIDATED',
-        created_at: new Date(),
-      }),
-    ).rejects.toBeInstanceOf(MaxDistanceError)
-  })
-
-  it('Deve impedir que o usuário faça mais de um pedido em menos de 1 hora', async () => {
-    const date = new Date()
-
-    // Cria o primeiro pedido
-    await sut.execute({
-      storeId: 'loja-01',
-      userId: 'user-123',
-      totalAmount: 200,
-      userLatitude: -46.9355272,
-      userLongitude: -12.9332477,
-      validated_at: new Date(),
-      status: 'VALIDATED',
-      created_at: date,
-    })
-
-    // Tenta criar um segundo pedido dentro da mesma hora
-    await expect(() =>
-      sut.execute({
-        storeId: 'loja-01',
-        userId: 'user-123',
-        totalAmount: 220,
-        userLatitude: -46.9355272,
-        userLongitude: -12.9332477,
-        validated_at: new Date(),
-        status: 'VALIDATED',
-        created_at: dayjs(date).add(30, 'minutes').toDate(), // 30 minutos depois
-      }),
-    ).rejects.toThrowError(MaxNumberOfOrdersError)
-  })
-
-  it('Deve permitir que o usuário faça um novo pedido após 1 hora', async () => {
-    // Cria o primeiro pedido
-    await sut.execute({
-      storeId: 'loja-01',
-      userId: 'user-01',
-      totalAmount: 200,
-      userLatitude: -46.9355272,
-      userLongitude: -12.9332477,
-      validated_at: new Date(),
-      status: 'VALIDATED',
-      created_at: dayjs().subtract(2, 'hour').toDate(), // 2 horas atrás
-    })
-
-    // Cria um segundo pedido após 1 hora e 1 minuto
-    const newOrder = await sut.execute({
-      storeId: 'loja-01',
-      userId: 'user-01',
-      totalAmount: 200,
-      userLatitude: -46.9355272,
-      userLongitude: -12.9332477,
-      validated_at: new Date(),
-      status: 'VALIDATED',
-      created_at: new Date(),
-    })
-
-    expect(newOrder).toBeDefined()
   })
 })

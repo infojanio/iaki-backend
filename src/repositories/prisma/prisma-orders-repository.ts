@@ -1,128 +1,91 @@
 import { prisma } from '@/lib/prisma'
 import { OrdersRepository } from '@/repositories/orders-repository'
-import { Order, Prisma, PrismaClient } from '@prisma/client'
+import { Order, Prisma } from '@prisma/client'
 import dayjs from 'dayjs'
+
 export class PrismaOrdersRepository implements OrdersRepository {
-  private items: Order[] = [] // Garante que é sempre um array
-  private prisma = new PrismaClient()
-  //retorna 1 pedido por id
-  async findById(id: string) {
-    const order = await prisma.order.findUnique({
-      where: {
-        id,
-      },
-    })
-    return order
+  // Retorna 1 pedido por ID
+  async findById(id: string): Promise<Order | null> {
+    return await prisma.order.findUnique({ where: { id } })
   }
 
-  /*
-  //encontra pedido feito em 1 dia
-  async findByUserIdOnDate(userId: string, date: Date) {
-    const startOfTheDay = dayjs(date).startOf('date')
-    const endOfTheDay = dayjs(date).endOf('date')
-    const order = await prisma.order.findFirst({
+  // Encontra pedido feito na última hora
+  async findByUserIdLastHour(
+    userId: string,
+    date: Date,
+  ): Promise<Order | boolean | null> {
+    const oneHourAgo = dayjs(date).subtract(1, 'hour').toDate()
+
+    return await prisma.order.findFirst({
       where: {
         user_id: userId,
-        created_at: {
-          gte: startOfTheDay.toDate(),
-          lte: endOfTheDay.toDate(),
-        },
+        created_at: { gte: oneHourAgo },
       },
     })
-    return order
   }
 
-  //encontra pedido feito em 1 hora
-  async findByUserIdOnHour(userId: string, date: Date) {
-    const startOfTheHour = dayjs(date).startOf('hour')
-    const endOfTheHour = dayjs(date).endOf('hour')
-    const order = await prisma.order.findFirst({
-      where: {
-        user_id: userId,
-        created_at: {
-          gte: startOfTheHour.toDate(), //o pedido foi feito após o início desse horário
-          lte: endOfTheHour.toDate(), //o pedido foi feito antes do início desse horário
-        },
-      },
-    })
-
-    return order
-  }
-*/
-  //encontra pedido feito em 1 hora
-  async findByUserIdLastHour(userId: string): Promise<Order | null> {
-    if (!this.items || !Array.isArray(this.items)) {
-      return null
-    }
-
-    const oneHourAgo = dayjs().subtract(1, 'hour')
-
-    const orderInLastHour = this.items.find((order) => {
-      return (
-        order.user_id === userId && dayjs(order.created_at).isAfter(oneHourAgo) // Deve estar dentro da última hora
-      )
-    })
-
-    return orderInLastHour || null
-  }
-  //retorna vários pedidos por id cliente
-  async findManyByUserId(userId: string, page: number) {
-    const orders = await prisma.order.findMany({
-      where: {
-        user_id: userId,
-      },
+  // Retorna vários pedidos por ID de cliente
+  async findManyByUserId(userId: string, page: number): Promise<Order[]> {
+    return await prisma.order.findMany({
+      where: { user_id: userId },
       skip: (page - 1) * 20,
       take: 20,
     })
-    return orders
   }
 
-  //conta n. pedidos por userId
-  async countByUserId(userId: string) {
-    const count = await prisma.order.count({
-      where: {
-        user_id: userId,
-      },
-    })
-    return count
-  }
   async create(data: Prisma.OrderUncheckedCreateInput) {
     const order = await prisma.order.create({
       data,
     })
     return order
   }
-  async save(data: Order) {
-    const order = await prisma.order.update({
-      where: {
-        id: data.id,
-      },
-      data,
+
+  async createOrderItems(
+    order_id: string,
+    items: { product_id: string; quantity: number; subtotal: number }[],
+  ): Promise<void> {
+    if (items.length === 0) return
+
+    await prisma.orderItem.createMany({
+      data: items.map((item) => ({
+        order_id: order_id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
     })
-    return order
   }
 
-  async balanceByUserId(userId: string): Promise<number> {
-    const validatedCashbacks = await this.prisma.cashback.findMany({
-      where: {
-        user_id: userId,
-        order: {
-          validated_at: {
-            not: null, // Considera apenas pedidos validados
-          },
-        },
-      },
-      select: {
-        amount: true,
-      },
+  // Atualiza ou insere um pedido no banco
+  async save(order: Order): Promise<Order> {
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: order.id },
     })
 
-    const balance = validatedCashbacks.reduce(
-      (acc, cashback) => acc + cashback.amount.toNumber(),
+    if (existingOrder) {
+      return await prisma.order.update({
+        where: { id: order.id },
+        data: order,
+      })
+    } else {
+      return await prisma.order.create({ data: order })
+    }
+  }
+
+  // Retorna o saldo do usuário considerando apenas pedidos validados
+  async balanceByUserId(userId: string): Promise<number> {
+    const validatedCashbacks = await prisma.cashback.findMany({
+      where: {
+        user_id: userId,
+        order: { validated_at: { not: null } }, // Apenas pedidos validados
+      },
+      select: { amount: true },
+    })
+
+    return validatedCashbacks.reduce(
+      (acc, cashback) => acc + new Prisma.Decimal(cashback.amount).toNumber(),
       0,
     )
-
-    return balance
   }
 
 
