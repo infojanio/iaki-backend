@@ -19,7 +19,6 @@ app.register(fastifyJwt, {
  
 });
 
-
 app.register(usersRoutes)
 app.register(storesRoutes)
 app.register(ordersRoutes)

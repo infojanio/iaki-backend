@@ -1,39 +1,27 @@
 import request from 'supertest'
 import { app } from '@/app'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-describe('Refresh Token (e2e)', () => {
+import { createAndAuthenticateUser } from '@/utils/test/create-and-authenticate-user'
+
+describe('Profile (e2e)', () => {
   beforeAll(async () => {
     await app.ready()
   })
   afterAll(async () => {
     await app.close()
   })
-  it('should be able to refresh a token', async () => {
-    await request(app.server).post('/users').send({
-      name: 'John Doe',
-      email: 'johndoe@example.com',
-      password: '123456',
-    })
-    const authResponse = await request(app.server).post('/sessions').send({
-      email: 'johndoe@example.com',
-      password: '123456',
-    })
+  it('should be able to get user profile', async () => {
+    const { accessToken } = await createAndAuthenticateUser(app, true)
 
-    const cookies = authResponse.headers['set-cookie']
-
-    expect(cookies).toBeDefined()
-
-    const response = await request(app.server)
-      .patch('/token/refresh')
-      .set('Cookie', cookies)
+    const profileResponse = await request(app.server)
+      .get('/me')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send()
-
-    expect(response.statusCode).toEqual(200)
-    expect(response.body).toEqual({
-      token: expect.any(String),
-    })
-    expect(response.get('Set-Cookie')).toEqual([
-      expect.stringContaining('refreshToken='),
-    ])
+    expect(profileResponse.statusCode).toEqual(200)
+    expect(profileResponse.body.user).toEqual(
+      expect.objectContaining({
+        email: 'johndoe@example.com',
+      }),
+    )
   })
 })

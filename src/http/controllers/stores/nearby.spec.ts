@@ -10,10 +10,10 @@ describe('Nearby Stores (e2e)', () => {
     await app.close()
   })
   it('should be able list nearby stores', async () => {
-    const { token } = await createAndAuthenticateUser(app)
+    const { accessToken } = await createAndAuthenticateUser(app, true)
     await request(app.server)
       .post('/stores')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'JavaScript Gym',
         slug: 'Some description.',
@@ -22,7 +22,7 @@ describe('Nearby Stores (e2e)', () => {
       })
     await request(app.server)
       .post('/stores')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'TypeScript Gym',
         slug: 'Some description.',
@@ -35,7 +35,7 @@ describe('Nearby Stores (e2e)', () => {
         latitude: -27.2092052,
         longitude: -49.6401091,
       })
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send()
     expect(response.statusCode).toEqual(200)
     expect(response.body.stores).toHaveLength(1)
