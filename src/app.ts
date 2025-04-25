@@ -18,7 +18,15 @@ export const app = fastify({
 // Habilita JSON no body
 app.register(fastifyFormBody)
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET! })
-app.register(fastifyCors)
+app.register(fastifyCors, {
+  origin: [
+    'https://iaki.com.br', // ✅ frontend hospedado
+    //'http://localhost:5173', // opcional para dev local
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+})
 
 app.register(usersRoutes)
 app.register(storesRoutes)
