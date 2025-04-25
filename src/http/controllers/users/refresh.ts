@@ -42,17 +42,17 @@ export async function refresh(request: FastifyRequest, reply: FastifyReply) {
     // Gera um novo access token
     const newAccessToken = await reply.jwtSign(
       { role },
-      { sign: { sub: userId, expiresIn: '30m' } },
+      { sign: { sub: userId, expiresIn: '15m' } },
     )
 
-    // Define uma nova data de expiração (30 dias a partir de agora)
+    // Define uma nova data de expiração (7 dias a partir de agora)
     const newExpiresAt = new Date()
-    newExpiresAt.setDate(newExpiresAt.getDate() + 30)
+    newExpiresAt.setDate(newExpiresAt.getDate() + 7)
 
     // Gera um novo refresh token
     const newRefreshToken = await reply.jwtSign(
       { role },
-      { sign: { sub: userId, expiresIn: '30d' } },
+      { sign: { sub: userId, expiresIn: '7d' } },
     )
     console.log('Novo token gerado', newAccessToken)
 
