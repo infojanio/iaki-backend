@@ -1,3 +1,4 @@
+import { env } from '@/env'
 // Crie um arquivo config.ts
 import dotenv from 'dotenv'
 

@@ -3,7 +3,7 @@ import fastifyJwt from '@fastify/jwt'
 import fastifyCors from '@fastify/cors'
 import fastifyFormBody from '@fastify/formbody'
 import { ZodError } from 'zod'
-import { env } from './.env'
+import { env } from '@/env'
 
 import { usersRoutes } from '@/http/controllers/users/routes'
 import { storesRoutes } from '@/http/controllers/stores/routes'
