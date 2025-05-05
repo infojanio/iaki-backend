@@ -6,6 +6,7 @@ import { listProducts } from './listProducts'
 import { fetchProductsBySubCategory } from './fetch-products-by-subcategory'
 import { fetchProductsByCashback } from './fetch-products-by-cashback'
 import { fetchProductsByQuantity } from './fetch-products-by-quantity'
+import { getProduct } from './get-product'
 
 export async function productsRoutes(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -13,6 +14,7 @@ export async function productsRoutes(app: FastifyInstance) {
   app.get('/products/quantity', fetchProductsByQuantity)
   app.get('/products/cashback', fetchProductsByCashback)
   app.get('/products', listProducts)
+  app.get('/products/:productId', getProduct)
   app.get('/products/subcategory', fetchProductsBySubCategory)
   app.post(
     //    '/stores/${storeId}/subcategories/${subcategoryId}/products',

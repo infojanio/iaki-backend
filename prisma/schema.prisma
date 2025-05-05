@@ -20,6 +20,7 @@ model User {
   avatar       String?
   address      Address[] // Relacionamento com o endereço
   orders       Order[]
+  carts        Cart[]
   cashbacks    Cashback[]
   created_at   DateTime       @default(now()) @map("created_at")
   RefreshToken RefreshToken[]
@@ -56,9 +57,33 @@ model Product {
   subcategory_id     String      @map("subcategory_id")
   subcategory        SubCategory @relation(fields: [subcategory_id], references: [id])
   orderItems         OrderItem[]
+  cartItems          CartItem[]
   created_at         DateTime    @default(now()) @map("created_at")
 
   @@map("products")
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String   @map("cart_id")
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  productId String   @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("cart_items")
 }
 
 model Order {

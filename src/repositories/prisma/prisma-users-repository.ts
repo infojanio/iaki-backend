@@ -34,7 +34,7 @@ export class PrismaUsersRepository implements UsersRepository {
         id,
       },
     })
-    console.log('🔍 Buscando usuário com ID:', user)
+    console.log('🔍 Buscando usuário com ID:', user?.name)
 
     return user
   }

@@ -1,26 +1,19 @@
 import { ProductsRepository } from '@/repositories/prisma/Iprisma/products-repository'
-import { Product } from '@prisma/client'
-import { ResourceNotFoundError } from '@/utils/messages/errors/resource-not-found-error'
 
 interface GetProductUseCaseRequest {
   productId: string
 }
 
-interface GetProductUseCaseResponse {
-  product: Product
-}
 export class GetProductUseCase {
   constructor(private productsRepository: ProductsRepository) {}
 
-  async execute({
-    productId,
-  }: GetProductUseCaseRequest): Promise<GetProductUseCaseResponse> {
+  async execute({ productId }: GetProductUseCaseRequest) {
     const product = await this.productsRepository.findById(productId)
+
     if (!product) {
-      throw new ResourceNotFoundError()
+      throw new Error('Produto não encontrado')
     }
-    return {
-      product,
-    }
+
+    return product
   }
 }

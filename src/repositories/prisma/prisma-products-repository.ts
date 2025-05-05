@@ -19,6 +19,9 @@ export class PrismaProductsRepository implements ProductsRepository {
       where: {
         id,
       },
+      include: {
+        store: true,
+      },
     })
     return product
   }

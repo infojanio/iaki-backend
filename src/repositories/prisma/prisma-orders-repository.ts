@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
 import { Order, Prisma } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
 import dayjs from 'dayjs'
 
 export class PrismaOrdersRepository implements OrdersRepository {
@@ -86,5 +87,71 @@ export class PrismaOrdersRepository implements OrdersRepository {
       (acc, cashback) => acc + new Prisma.Decimal(cashback.amount).toNumber(),
       0,
     )
+  }
+
+  // ✅ Novo método implementado
+  async findPendingCartByUserId(
+    userId: string,
+  ): Promise<{
+    id: string
+    store: {
+      id: string
+      name: string
+    }
+    totalAmount: number
+    orderItems: Array<{
+      id: string
+      quantity: number
+      subtotal: number
+      product: {
+        id: string
+        name: string
+        price: number | Decimal
+        image: string | null
+        cashbackPercentage: number
+      }
+    }>
+  } | null> {
+    const order = await prisma.order.findFirst({
+      where: {
+        user_id: userId,
+        status: 'PENDING',
+      },
+      include: {
+        store: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                price: true,
+                image: true,
+                cashbackPercentage: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!order) return null
+
+    return {
+      id: order.id,
+      store: order.store,
+      totalAmount: new Prisma.Decimal(order.totalAmount).toNumber(),
+      orderItems: order.orderItems.map((item) => ({
+        id: item.id,
+        quantity: new Prisma.Decimal(item.quantity).toNumber(),
+        subtotal: new Prisma.Decimal(item.subtotal).toNumber(),
+        product: item.product,
+      })),
+    }
   }
 }

@@ -8,6 +8,7 @@ import { env } from '@/env'
 import { usersRoutes } from '@/http/controllers/users/routes'
 import { storesRoutes } from '@/http/controllers/stores/routes'
 import { ordersRoutes } from '@/http/controllers/orders/routes'
+import { cartsRoutes } from '@/http/controllers/carts/routes'
 import { productsRoutes } from '@/http/controllers/products/routes'
 import { subcategoriesRoutes } from '@/http/controllers/subcategories/routes'
 import { categoriesRoutes } from './http/controllers/categories/routes'
@@ -29,6 +30,7 @@ app.register(fastifyCors, {
 })
 
 app.register(usersRoutes)
+app.register(cartsRoutes)
 app.register(storesRoutes)
 app.register(categoriesRoutes)
 app.register(subcategoriesRoutes)
