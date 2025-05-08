@@ -5,13 +5,16 @@ import { PrismaProductsRepository } from '@/repositories/prisma/prisma-products-
 import { PrismaUsersRepository } from '@/repositories/prisma/prisma-users-repository'
 import { PrismaOrderItemsRepository } from '@/repositories/prisma/prisma-order-items-repository'
 import { PrismaCashbacksRepository } from '@/repositories/prisma/prisma-cashbacks-repository'
+import { PrismaUserLocationsRepository } from '@/repositories/prisma/prisma-user-locations-repository'
+
 export function makeOrderUseCase() {
   const usersRepository = new PrismaUsersRepository()
   const productsRepository = new PrismaProductsRepository()
   const ordersRepository = new PrismaOrdersRepository()
   const orderItemsRepository = new PrismaOrderItemsRepository()
   const storesRepository = new PrismaStoresRepository()
-  const cashbacksBalanceRepository = new PrismaCashbacksRepository()
+  const cashbacksRepository = new PrismaCashbacksRepository()
+  const userLocationsRepository = new PrismaUserLocationsRepository()
 
   const useCase = new OrderUseCase(
     ordersRepository,
@@ -19,7 +22,8 @@ export function makeOrderUseCase() {
     orderItemsRepository,
     storesRepository,
     usersRepository,
-    cashbacksBalanceRepository,
+    cashbacksRepository,
+    userLocationsRepository,
   )
   return useCase
 }

@@ -1,10 +1,13 @@
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { Prisma, Order, Cashback } from '@prisma/client'
+import { Prisma, Order, Cashback, OrderStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import dayjs from 'dayjs'
 import { randomUUID } from 'node:crypto'
 
 export class InMemoryOrdersRepository implements OrdersRepository {
+  updateStatus(orderId: string, status: OrderStatus): Promise<Order | null> {
+    throw new Error('Method not implemented.')
+  }
   public orders: Order[] = []
   public cashbacks: Cashback[] = []
 

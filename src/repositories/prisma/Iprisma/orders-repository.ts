@@ -1,4 +1,4 @@
-import { Order, Prisma, OrderStatus } from '@prisma/client'
+import { Order, Prisma, OrderStatus, UserLocation } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
 export interface OrdersRepository {

@@ -1,27 +1,15 @@
-// src/use-cases/factories/make-create-order-use-case.ts
-import { OrderUseCase } from '@/use-cases/orders/create-order'
+// src/factories/make-order-use-case.ts
 import { PrismaOrdersRepository } from '@/repositories/prisma/prisma-orders-repository'
-import { PrismaProductsRepository } from '@/repositories/prisma/prisma-products-repository'
-import { PrismaOrderItemsRepository } from '@/repositories/prisma/prisma-order-items-repository'
-import { PrismaStoresRepository } from '@/repositories/prisma/prisma-stores-repository'
-import { PrismaUsersRepository } from '@/repositories/prisma/prisma-users-repository'
-import { PrismaCashbacksRepository } from '@/repositories/prisma/prisma-cashbacks-repository'
+import { OrderUseCase } from '../use-cases/orders/create-order'
 
-export function makeCreateOrderUseCase() {
+import { PrismaUserLocationsRepository } from '@/repositories/prisma/prisma-user-locations-repository'
+
+export function makeOrderUseCase() {
   const ordersRepository = new PrismaOrdersRepository()
-  const productsRepository = new PrismaProductsRepository()
-  const orderItemsRepository = new PrismaOrderItemsRepository()
-  const storesRepository = new PrismaStoresRepository()
-  const usersRepository = new PrismaUsersRepository()
-  const cashbacksRepository = new PrismaCashbacksRepository()
 
-  const useCase = new OrderUseCase(
-    ordersRepository,
-    productsRepository,
-    orderItemsRepository,
-    storesRepository,
-    usersRepository,
-    cashbacksRepository,
-  )
+  const userLocationsRepository = new PrismaUserLocationsRepository()
+
+  const useCase = new OrderUseCase(ordersRepository, userLocationsRepository)
+
   return useCase
 }

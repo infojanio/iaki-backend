@@ -11,6 +11,7 @@ import { ProductsRepository } from '@/repositories/prisma/Iprisma/products-repos
 import { prisma } from '@/lib/prisma'
 import { Decimal } from '@prisma/client/runtime/library'
 import { CashbacksRepository } from '@/repositories/prisma/Iprisma/cashbacks-repository'
+import { UserLocationRepository } from '@/repositories/prisma/Iprisma/user-locations-repository'
 
 interface OrderItem {
   product_id: string
@@ -44,6 +45,7 @@ export class OrderUseCase {
     private storesRepository: StoresRepository,
     private usersRepository: UsersRepository,
     private cashbacksBalanceRepository: CashbacksRepository,
+    private userLocationRepository: UserLocationRepository,
   ) {}
 
   async execute({
