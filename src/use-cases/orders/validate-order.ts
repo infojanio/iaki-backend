@@ -1,39 +1,46 @@
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-
-import { LateOrderValidationError } from '@/utils/messages/errors/late-order-validation-error'
-import { ResourceNotFoundError } from '@/utils/messages/errors/resource-not-found-error'
-import { Order } from '@prisma/client'
-import dayjs from 'dayjs'
+import { UsersRepository } from '@/repositories/prisma/Iprisma/users-repository'
+import { CashbacksRepository } from '@/repositories/prisma/Iprisma/cashbacks-repository'
 
 interface ValidateOrderUseCaseRequest {
-  orderId: string
+  order_id: string
+  admin_user_id: string // Usuário que está validando o pedido (ADMIN)
 }
-interface ValidateOrderUseCaseResponse {
-  order: Order
-}
+
 export class ValidateOrderUseCase {
-  constructor(private ordersRepository: OrdersRepository) {}
-  async execute({
-    orderId,
-  }: ValidateOrderUseCaseRequest): Promise<ValidateOrderUseCaseResponse> {
-    const order = await this.ordersRepository.findById(orderId)
+  constructor(
+    private ordersRepository: OrdersRepository,
+    private usersRepository: UsersRepository,
+    private cashbacksRepository: CashbacksRepository,
+  ) {}
+
+  async execute({ order_id, admin_user_id }: ValidateOrderUseCaseRequest) {
+    const adminUser = await this.usersRepository.findById(admin_user_id)
+
+    if (!adminUser || adminUser.role !== 'ADMIN') {
+      throw new Error('Apenas usuários ADMIN podem validar pedidos.')
+    }
+
+    const order = await this.ordersRepository.findById(order_id)
+
     if (!order) {
-      throw new ResourceNotFoundError()
+      throw new Error('Pedido não encontrado.')
     }
 
-    //diff -> compara uma data do futuro com a data do passado
-    const distanceInHoursFromCheckInCreation = dayjs(new Date()).diff(
-      order.created_at,
-      'hours',
+    if (order.status !== 'PENDING') {
+      throw new Error('Apenas pedidos com status PENDING podem ser validados.')
+    }
+
+    // Aplicar cashback ao saldo do usuário
+    await this.cashbacksRepository.applyCashback(
+      order.user_id,
+      order.id,
+      order.totalAmount.toNumber(),
     )
-    if (distanceInHoursFromCheckInCreation > 48) {
-      throw new LateOrderValidationError()
-    }
 
-    order.validated_at = new Date()
-    await this.ordersRepository.save(order)
-    return {
-      order,
-    }
+    // Atualizar status do pedido para VALIDATED
+    await this.ordersRepository.updateStatus(order_id, 'VALIDATED')
+
+    return { order_id, status: 'VALIDATED' }
   }
 }

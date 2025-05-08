@@ -1,16 +1,24 @@
 import { prisma } from '@/lib/prisma'
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { Order, Prisma } from '@prisma/client'
+import { Order, OrderStatus, Prisma } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import dayjs from 'dayjs'
 
 export class PrismaOrdersRepository implements OrdersRepository {
-  // Retorna 1 pedido por ID
   async findById(id: string): Promise<Order | null> {
     return await prisma.order.findUnique({ where: { id } })
   }
 
-  // Encontra pedido feito na última hora
+  async updateStatus(
+    order_id: string,
+    status: OrderStatus,
+  ): Promise<Order | null> {
+    return prisma.order.update({
+      where: { id: order_id },
+      data: { status },
+    })
+  }
+
   async findByUserIdLastHour(
     userId: string,
     date: Date,
@@ -18,14 +26,10 @@ export class PrismaOrdersRepository implements OrdersRepository {
     const oneHourAgo = dayjs(date).subtract(1, 'hour').toDate()
 
     return await prisma.order.findFirst({
-      where: {
-        user_id: userId,
-        created_at: { gte: oneHourAgo },
-      },
+      where: { user_id: userId, created_at: { gte: oneHourAgo } },
     })
   }
 
-  // Retorna vários pedidos por ID de cliente
   async findManyByUserId(userId: string, page: number): Promise<Order[]> {
     return await prisma.order.findMany({
       where: { user_id: userId },
@@ -35,10 +39,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
   }
 
   async create(data: Prisma.OrderUncheckedCreateInput) {
-    const order = await prisma.order.create({
-      data,
-    })
-    return order
+    return await prisma.order.create({ data })
   }
 
   async createOrderItems(
@@ -57,29 +58,17 @@ export class PrismaOrdersRepository implements OrdersRepository {
     })
   }
 
-  // Atualiza ou insere um pedido no banco
   async save(order: Order): Promise<Order> {
-    const existingOrder = await prisma.order.findUnique({
+    return await prisma.order.upsert({
       where: { id: order.id },
+      update: order,
+      create: order,
     })
-
-    if (existingOrder) {
-      return await prisma.order.update({
-        where: { id: order.id },
-        data: order,
-      })
-    } else {
-      return await prisma.order.create({ data: order })
-    }
   }
 
-  // Retorna o saldo do usuário considerando apenas pedidos validados
   async balanceByUserId(userId: string): Promise<number> {
     const validatedCashbacks = await prisma.cashback.findMany({
-      where: {
-        user_id: userId,
-        order: { validated_at: { not: null } }, // Apenas pedidos validados
-      },
+      where: { user_id: userId, order: { validated_at: { not: null } } },
       select: { amount: true },
     })
 
@@ -89,54 +78,12 @@ export class PrismaOrdersRepository implements OrdersRepository {
     )
   }
 
-  // ✅ Novo método implementado
-  async findPendingCartByUserId(
-    userId: string,
-  ): Promise<{
-    id: string
-    store: {
-      id: string
-      name: string
-    }
-    totalAmount: number
-    orderItems: Array<{
-      id: string
-      quantity: number
-      subtotal: number
-      product: {
-        id: string
-        name: string
-        price: number | Decimal
-        image: string | null
-        cashbackPercentage: number
-      }
-    }>
-  } | null> {
+  async findPendingCartByUserId(userId: string) {
     const order = await prisma.order.findFirst({
-      where: {
-        user_id: userId,
-        status: 'PENDING',
-      },
+      where: { user_id: userId, status: 'PENDING' },
       include: {
-        store: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                image: true,
-                cashbackPercentage: true,
-              },
-            },
-          },
-        },
+        store: { select: { id: true, name: true } },
+        orderItems: { include: { product: true } },
       },
     })
 
@@ -147,10 +94,9 @@ export class PrismaOrdersRepository implements OrdersRepository {
       store: order.store,
       totalAmount: new Prisma.Decimal(order.totalAmount).toNumber(),
       orderItems: order.orderItems.map((item) => ({
-        id: item.id,
-        quantity: new Prisma.Decimal(item.quantity).toNumber(),
+        ...item,
         subtotal: new Prisma.Decimal(item.subtotal).toNumber(),
-        product: item.product,
+        product: { ...item.product },
       })),
     }
   }

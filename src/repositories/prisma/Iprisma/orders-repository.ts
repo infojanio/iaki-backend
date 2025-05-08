@@ -1,4 +1,4 @@
-import { Order, Prisma } from '@prisma/client'
+import { Order, Prisma, OrderStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
 export interface OrdersRepository {
@@ -18,4 +18,6 @@ export interface OrdersRepository {
   findManyByUserId(userId: string, page: number): Promise<Order[]>
   save(order: Order): Promise<Order>
   balanceByUserId(userId: string): Promise<number | Decimal>
+
+  updateStatus(orderId: string, status: OrderStatus): Promise<Order | null>
 }

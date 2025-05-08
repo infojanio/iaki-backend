@@ -1,9 +1,12 @@
-import { Cashback } from '@prisma/client'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Cashback, Prisma } from '@prisma/client'
 
 export interface CashbacksRepository {
-  findByUserId(userId: string): Promise<Cashback[]>
-  // balanceByUserId(userId: string): Promise<number>
-  totalCashbackByUserId(userId: string): Promise<number | Decimal>
-  totalUsedCashbackByUserId(userId: string): Promise<number | Decimal>
+  totalCashbackByUserId(user_id: string): Promise<number>
+  totalUsedCashbackByUserId(user_id: string): Promise<number>
+  findByUserId(user_id: string): Promise<Cashback[]>
+  applyCashback(
+    order_id: string,
+    user_id: string,
+    amount: number,
+  ): Promise<void> // ✅ Corrigido
 }
