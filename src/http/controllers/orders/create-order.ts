@@ -7,6 +7,8 @@ export async function createOrder(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
+  console.log('📩 Dados recebidos:', request.body)
+
   const createOrderBodySchema = z.object({
     user_id: z.string().uuid({ message: 'ID do usuário inválido' }),
     store_id: z.string().uuid({ message: 'ID da loja inválido' }),
@@ -38,10 +40,11 @@ export async function createOrder(
       longitude: validatedData.longitude,
       items: validatedData.items,
     })
-
+    console.log('pedido', order)
     return reply.status(201).send(order)
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log('Pedido não confirmado', error)
       return reply.status(400).send({
         message: 'Erro de validação',
         errors: error.flatten().fieldErrors,
