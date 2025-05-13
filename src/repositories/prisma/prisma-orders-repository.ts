@@ -92,6 +92,51 @@ export class PrismaOrdersRepository implements OrdersRepository {
     }))
   }
 
+  async findManyByOrderIdWithItems(
+    orderId: string,
+    page: number,
+    status?: OrderStatus,
+  ) {
+    const orders = await prisma.order.findMany({
+      where: {
+        id: orderId,
+        status: status ? status : undefined,
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: true, // Inclui os detalhes do produto
+          },
+        },
+      },
+      skip: (page - 1) * 10,
+      take: 10,
+      orderBy: {
+        created_at: 'desc',
+      },
+    })
+
+    // Normalizando os dados retornados
+    return orders.map((order) => ({
+      id: order.id,
+      store_id: order.store_id,
+      totalAmount: new Decimal(order.totalAmount).toNumber(),
+      qrCodeUrl: order.qrCodeUrl ?? undefined, // Convertendo null para undefined
+      status: order.status as string,
+      validated_at: order.validated_at,
+      created_at: order.created_at,
+      items: order.orderItems.map((item) => ({
+        product: {
+          name: item.product.name,
+          image: item.product.image ?? null,
+          price: new Decimal(item.product.price).toNumber(),
+          cashbackPercentage: item.product.cashbackPercentage,
+        },
+        quantity: new Decimal(item.quantity).toNumber(), // Convertendo para number
+      })),
+    }))
+  }
+
   async create(data: Prisma.OrderUncheckedCreateInput) {
     const order = await prisma.order.create({ data })
 

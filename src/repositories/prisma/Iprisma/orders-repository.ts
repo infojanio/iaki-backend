@@ -15,6 +15,31 @@ export interface OrdersRepository {
     date: Date,
   ): Promise<Order | boolean | null>
 
+  findManyByOrderIdWithItems(
+    orderId: string,
+    page: number,
+    status?: string,
+  ): Promise<
+    Array<{
+      id: string
+      store_id: string
+      totalAmount: number
+      qrCodeUrl?: string | null // Permitir null
+      status: string
+      validated_at: Date | null
+      created_at: Date
+      items: Array<{
+        product: {
+          name: string
+          image: string | null
+          price: number
+          cashbackPercentage: number
+        }
+        quantity: number
+      }>
+    }>
+  >
+
   findManyByUserIdWithItems(
     userId: string,
     page: number,

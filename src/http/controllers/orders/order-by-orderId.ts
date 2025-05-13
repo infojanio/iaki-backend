@@ -1,11 +1,11 @@
 // src/controllers/orders-controller.ts
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { makeFetchUserOrdersHistoryUseCase } from '@/use-cases/_factories/make-fetch-user-orders-history-use-case'
+import { makeFetchOrderOrdersHistoryUseCase } from '@/use-cases/_factories/make-fetch-order-orders-history-use-case'
 import { OrderStatus } from '@prisma/client'
 
-export async function getOrderByUser(
-  request: FastifyRequest<{ Params: { userId: string } }>,
+export async function getOrderByOrderId(
+  request: FastifyRequest<{ Params: { orderId: string } }>,
   reply: FastifyReply,
 ) {
   // Validação da query para a página e status
@@ -16,7 +16,7 @@ export async function getOrderByUser(
 
   // Extraindo parâmetros da query e da rota
   const { page, status } = orderHistoryQuerySchema.parse(request.query)
-  const userId = request.user.sub // Pegando o ID do usuário autenticado pelo JWT
+  const orderId = request.params.orderId // Pegando o ID do usuário autenticado pelo JWT
 
   // Verificando se o status é um valor válido do enum OrderStatus
   const validStatus =
@@ -25,11 +25,11 @@ export async function getOrderByUser(
       : undefined
 
   // Criando a instância do caso de uso
-  const fetchUserOrdersHistoryUseCase = makeFetchUserOrdersHistoryUseCase()
+  const fetchOrderOrdersHistoryUseCase = makeFetchOrderOrdersHistoryUseCase()
 
   // Executando o caso de uso para pegar o histórico de pedidos
-  const { orders } = await fetchUserOrdersHistoryUseCase.execute({
-    userId,
+  const { orders } = await fetchOrderOrdersHistoryUseCase.execute({
+    orderId,
     page,
     status: validStatus,
   })
