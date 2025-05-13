@@ -105,6 +105,7 @@ model Order {
   store        Store       @relation(fields: [store_id], references: [id])
   totalAmount  Decimal     @map("total_amount")
   validated_at DateTime?   @map("validated_at")
+  qrCodeUrl    String? // Novo campo para armazenar o QR Code do pedido
   status       OrderStatus @default(PENDING)
   orderItems   OrderItem[]
   created_at   DateTime    @default(now()) @map("created_at")

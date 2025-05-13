@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { makeListSubCategoriesUseCase } from '@/factories/make-list-subcategories-use-case'
+import { makeListSubCategoriesUseCase } from '@/use-cases/_factories/make-list-subcategories-use-case'
 
 export async function listSubCategories(
   request: FastifyRequest,

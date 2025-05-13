@@ -1,7 +1,7 @@
 // src/controllers/orders/create-order.ts
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { makeOrderUseCase } from '@/factories/make-create-order-use-case'
+import { makeOrderUseCase } from '@/use-cases/_factories/make-create-order-use-case'
 
 export async function createOrder(
   request: FastifyRequest,

@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { makeFetchProductsBySubCategoryUseCase } from '@/factories/make-fetch-products-by-subcategory-use-case'
+import { makeFetchProductsBySubCategoryUseCase } from '@/use-cases/_factories/make-fetch-products-by-subcategory-use-case'
 
 export async function fetchProductsBySubCategory(
   request: FastifyRequest,

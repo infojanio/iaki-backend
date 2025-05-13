@@ -1,6 +1,6 @@
 import { PrismaOrdersRepository } from '@/repositories/prisma/prisma-orders-repository'
 import { PrismaCashbacksRepository } from '@/repositories/prisma/prisma-cashbacks-repository' // ✅ Importando repositório de cashback
-import { ValidateOrderUseCase } from '../use-cases/orders/validate-order'
+import { ValidateOrderUseCase } from '../orders/validate-order'
 import { PrismaUsersRepository } from '@/repositories/prisma/prisma-users-repository'
 
 export function makeValidateOrderUseCase() {

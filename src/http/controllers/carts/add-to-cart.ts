@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
-import { makeAddToCartUseCase } from '@/factories/make-add-to-cart-use-case'
+import { makeAddToCartUseCase } from '@/use-cases/_factories/make-add-to-cart-use-case'
 
 export async function addToCart(request: FastifyRequest, reply: FastifyReply) {
   const userId = request.user.sub

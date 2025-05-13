@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { makeFetchProductsByCashbackUseCase } from '@/factories/make-fetch-products-by-cashback-use-case'
+import { makeFetchProductsByCashbackUseCase } from '@/use-cases/_factories/make-fetch-products-by-cashback-use-case'
 
 export async function fetchProductsByCashback(
   request: FastifyRequest,

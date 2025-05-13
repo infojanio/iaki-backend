@@ -1,6 +1,6 @@
 // src/factories/make-order-use-case.ts
 import { PrismaOrdersRepository } from '@/repositories/prisma/prisma-orders-repository'
-import { OrderUseCase } from '../use-cases/orders/create-order'
+import { OrderUseCase } from '../orders/create-order'
 
 import { PrismaUserLocationsRepository } from '@/repositories/prisma/prisma-user-locations-repository'
 

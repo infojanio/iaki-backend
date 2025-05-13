@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
-import { makeUpdateCartItemQuantityUseCase } from '@/factories/make-update-cart-item-quantity-use-case'
+import { makeUpdateCartItemQuantityUseCase } from '@/use-cases/_factories/make-update-cart-item-quantity-use-case'
 
 export async function updateItemQuantity(
   request: FastifyRequest,

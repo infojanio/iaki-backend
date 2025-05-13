@@ -1,7 +1,7 @@
 import { z } from 'zod' //responsável pela validação dos dados
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { UserAlreadyExistsError } from '@/utils/messages/errors/user-already-exists-error'
-import { makeAddressUseCase } from '@/factories/make-address-use-case'
+import { makeAddressUseCase } from '@/use-cases/_factories/make-address-use-case'
 
 export async function create(request: FastifyRequest, reply: FastifyReply) {
   const registerAddressBodySchema = z

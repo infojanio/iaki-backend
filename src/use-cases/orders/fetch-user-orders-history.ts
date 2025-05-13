@@ -1,28 +1,63 @@
+// src/use-cases/fetch-user-orders-history.ts
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { Order } from '@prisma/client'
+import { OrderStatus } from '@prisma/client'
+
 interface FetchUserOrdersHistoryUseCaseRequest {
   userId: string
-  storeId: string
-  status: string
-  validated_at: Date
-  totalAmount: number
-  created_at: Date
   page: number
+  status?: OrderStatus
 }
+
 interface FetchUserOrdersHistoryUseCaseResponse {
-  orders: Order[]
+  orders: Array<{
+    id: string
+    store_id: string
+    totalAmount: number
+    qrCodeUrl?: string // Agora é string | undefined
+    status: string
+    validated_at: Date | null
+    created_at: Date
+    items: Array<{
+      product: {
+        //  id: string
+        name: string
+        image: string | null
+        price: number
+        cashbackPercentage: number
+      }
+      quantity: number
+    }>
+  }>
 }
+
 export class FetchUserOrdersHistoryUseCase {
   constructor(private ordersRepository: OrdersRepository) {}
+
   async execute({
     userId,
     page,
+    status,
   }: FetchUserOrdersHistoryUseCaseRequest): Promise<
     FetchUserOrdersHistoryUseCaseResponse
   > {
-    const orders = await this.ordersRepository.findManyByUserId(userId, page)
+    const orders = await this.ordersRepository.findManyByUserIdWithItems(
+      userId,
+      page,
+      status,
+    )
+
     return {
-      orders,
+      orders: orders.map((order) => ({
+        ...order,
+        qrCodeUrl: order.qrCodeUrl ?? undefined, // Garantindo que qrCodeUrl seja string | undefined
+        items: order.items.map((item) => ({
+          ...item,
+          product: {
+            ...item.product,
+            image: item.product.image ?? '',
+          },
+        })),
+      })),
     }
   }
 }

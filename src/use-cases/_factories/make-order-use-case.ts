@@ -1,6 +1,6 @@
 import { PrismaOrdersRepository } from '@/repositories/prisma/prisma-orders-repository'
 import { PrismaStoresRepository } from '@/repositories/prisma/prisma-stores-repository'
-import { OrderUseCase } from '../use-cases/orders/order'
+import { OrderUseCase } from '../orders/order'
 import { PrismaProductsRepository } from '@/repositories/prisma/prisma-products-repository'
 import { PrismaUsersRepository } from '@/repositories/prisma/prisma-users-repository'
 import { PrismaOrderItemsRepository } from '@/repositories/prisma/prisma-order-items-repository'

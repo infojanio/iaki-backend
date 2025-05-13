@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { makeFetchProductsByQuantityUseCase } from '@/factories/make-fetch-products-by-quantity-use-case'
+import { makeFetchProductsByQuantityUseCase } from '@/use-cases/_factories/make-fetch-products-by-quantity-use-case'
 
 export async function fetchProductsByQuantity(
   request: FastifyRequest,

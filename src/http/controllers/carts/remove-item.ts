@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
-import { makeRemoveItemFromCartUseCase } from '@/factories/make-remove-item-use-case'
+import { makeRemoveItemFromCartUseCase } from '@/use-cases/_factories/make-remove-item-use-case'
 
 export async function removeItemFromCart(
   request: FastifyRequest,

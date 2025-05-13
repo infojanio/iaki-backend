@@ -1,5 +1,5 @@
 import { PrismaProductsRepository } from '@/repositories/prisma/prisma-products-repository'
-import { CreateProductUseCase } from '../use-cases/products/create-product'
+import { CreateProductUseCase } from '../products/create-product'
 import { PrismaStoresRepository } from '@/repositories/prisma/prisma-stores-repository'
 import { PrismaSubCategoriesRepository } from '@/repositories/prisma/prisma-subcategories-repository'
 export function makeCreateProductUseCase() {

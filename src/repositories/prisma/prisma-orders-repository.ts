@@ -3,10 +3,28 @@ import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repositor
 import { Order, OrderStatus, Prisma } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import dayjs from 'dayjs'
+import QRCode from 'qrcode'
 
 export class PrismaOrdersRepository implements OrdersRepository {
-  async findById(id: string): Promise<Order | null> {
-    return await prisma.order.findUnique({ where: { id } })
+  prisma: any
+  async findById(orderId: string) {
+    return this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                price: true,
+                image: true,
+                cashbackPercentage: true,
+              },
+            },
+          },
+        },
+      },
+    })
   }
 
   async updateStatus(
@@ -24,33 +42,78 @@ export class PrismaOrdersRepository implements OrdersRepository {
     date: Date,
   ): Promise<Order | boolean | null> {
     const oneHourAgo = dayjs(date).subtract(1, 'hour').toDate()
-
     return await prisma.order.findFirst({
       where: { user_id: userId, created_at: { gte: oneHourAgo } },
     })
   }
 
-  async findManyByUserId(userId: string, page: number): Promise<Order[]> {
-    return await prisma.order.findMany({
-      where: { user_id: userId },
-      skip: (page - 1) * 20,
-      take: 20,
+  async findManyByUserIdWithItems(
+    userId: string,
+    page: number,
+    status?: OrderStatus,
+  ) {
+    const orders = await prisma.order.findMany({
+      where: {
+        user_id: userId,
+        status: status ? status : undefined,
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: true, // Inclui os detalhes do produto
+          },
+        },
+      },
+      skip: (page - 1) * 10,
+      take: 10,
+      orderBy: {
+        created_at: 'desc',
+      },
     })
+
+    // Normalizando os dados retornados
+    return orders.map((order) => ({
+      id: order.id,
+      store_id: order.store_id,
+      totalAmount: new Decimal(order.totalAmount).toNumber(),
+      qrCodeUrl: order.qrCodeUrl ?? undefined, // Convertendo null para undefined
+      status: order.status as string,
+      validated_at: order.validated_at,
+      created_at: order.created_at,
+      items: order.orderItems.map((item) => ({
+        product: {
+          name: item.product.name,
+          image: item.product.image ?? null,
+          price: new Decimal(item.product.price).toNumber(),
+          cashbackPercentage: item.product.cashbackPercentage,
+        },
+        quantity: new Decimal(item.quantity).toNumber(), // Convertendo para number
+      })),
+    }))
   }
 
   async create(data: Prisma.OrderUncheckedCreateInput) {
-    return await prisma.order.create({ data })
+    const order = await prisma.order.create({ data })
+
+    const qrCodeUrl = await QRCode.toDataURL(order.id)
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { qrCodeUrl },
+    })
+
+    return { ...order, qrCodeUrl }
   }
 
   async createOrderItems(
     order_id: string,
     items: { product_id: string; quantity: number; subtotal: number }[],
-  ): Promise<void> {
+  ) {
     if (items.length === 0) return
 
     await prisma.orderItem.createMany({
       data: items.map((item) => ({
-        order_id: order_id,
+        order_id,
         product_id: item.product_id,
         quantity: item.quantity,
         subtotal: item.subtotal,
@@ -76,28 +139,5 @@ export class PrismaOrdersRepository implements OrdersRepository {
       (acc, cashback) => acc + new Prisma.Decimal(cashback.amount).toNumber(),
       0,
     )
-  }
-
-  async findPendingCartByUserId(userId: string) {
-    const order = await prisma.order.findFirst({
-      where: { user_id: userId, status: 'PENDING' },
-      include: {
-        store: { select: { id: true, name: true } },
-        orderItems: { include: { product: true } },
-      },
-    })
-
-    if (!order) return null
-
-    return {
-      id: order.id,
-      store: order.store,
-      totalAmount: new Prisma.Decimal(order.totalAmount).toNumber(),
-      orderItems: order.orderItems.map((item) => ({
-        ...item,
-        subtotal: new Prisma.Decimal(item.subtotal).toNumber(),
-        product: { ...item.product },
-      })),
-    }
   }
 }

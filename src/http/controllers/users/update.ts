@@ -1,7 +1,7 @@
 // src/http/controllers/users/update.ts
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
-import { makeUpdateUserUseCase } from '@/factories/make-update-user-use-case'
+import { makeUpdateUserUseCase } from '@/use-cases/_factories/make-update-user-use-case'
 import { UserNotFoundError } from '@/utils/messages/errors/user-not-found-error'
 import { EmailNotUpdatedError } from '@/utils/messages/errors/email-not-updated-error'
 import { UserUpdatedSuccess } from '@/utils/messages/success/user-updated-success'

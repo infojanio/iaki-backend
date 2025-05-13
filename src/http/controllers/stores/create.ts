@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { makeCreateStoreUseCase } from '@/factories/make-create-store-use-case'
-import { makeAddressUseCase } from '@/factories/make-create-address-use-case'
+import { makeCreateStoreUseCase } from '@/use-cases/_factories/make-create-store-use-case'
+import { makeAddressUseCase } from '@/use-cases/_factories/make-create-address-use-case'
 import { StoreAlreadyExistsError } from '@/utils/messages/errors/store-already-exists-error'
 
 export async function create(request: FastifyRequest, reply: FastifyReply) {

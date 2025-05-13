@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { makeClearCartUseCase } from '@/factories/make-clear-cart-use-case'
+import { makeClearCartUseCase } from '@/use-cases/_factories/make-clear-cart-use-case'
 
 export async function clearCart(request: FastifyRequest, reply: FastifyReply) {
   const userId = request.user.sub
