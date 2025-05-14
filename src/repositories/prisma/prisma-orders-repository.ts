@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { Order, OrderStatus, Prisma } from '@prisma/client'
+import { Order, OrderItem, OrderStatus, Prisma } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import dayjs from 'dayjs'
 import QRCode from 'qrcode'
@@ -184,5 +184,21 @@ export class PrismaOrdersRepository implements OrdersRepository {
       (acc, cashback) => acc + new Prisma.Decimal(cashback.amount).toNumber(),
       0,
     )
+  }
+  async getItemsByOrderId(orderId: string): Promise<OrderItem[]> {
+    return await prisma.orderItem.findMany({
+      where: {
+        order: {
+          id: orderId,
+        },
+      },
+      include: {
+        product: {
+          include: {
+            store: true,
+          },
+        },
+      },
+    })
   }
 }

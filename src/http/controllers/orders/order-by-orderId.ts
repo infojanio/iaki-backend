@@ -17,7 +17,7 @@ export async function getOrderByOrderId(
   // Extraindo parâmetros da query e da rota
   const { page, status } = orderHistoryQuerySchema.parse(request.query)
   const orderId = request.params.orderId // Pegando o ID do usuário autenticado pelo JWT
-
+  console.log('Recebendo o id pedido', orderId)
   // Verificando se o status é um valor válido do enum OrderStatus
   const validStatus =
     status && Object.values(OrderStatus).includes(status as OrderStatus)
