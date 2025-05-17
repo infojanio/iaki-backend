@@ -1,10 +1,65 @@
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { Prisma, Order, Cashback, OrderStatus } from '@prisma/client'
+import { Prisma, Order, Cashback, OrderStatus, OrderItem } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import dayjs from 'dayjs'
 import { randomUUID } from 'node:crypto'
 
 export class InMemoryOrdersRepository implements OrdersRepository {
+  findManyByOrderIdWithItems(
+    orderId: string,
+    page: number,
+    status?: string,
+  ): Promise<
+    Array<{
+      id: string
+      store_id: string
+      totalAmount: number
+      qrCodeUrl?: string | null
+      status: string
+      validated_at: Date | null
+      created_at: Date
+      items: Array<{
+        product: {
+          name: string
+          image: string | null
+          price: number
+          cashbackPercentage: number
+        }
+        quantity: number
+      }>
+    }>
+  > {
+    throw new Error('Method not implemented.')
+  }
+  findManyByUserIdWithItems(
+    userId: string,
+    page: number,
+    status?: string,
+  ): Promise<
+    Array<{
+      id: string
+      store_id: string
+      totalAmount: number
+      qrCodeUrl?: string | null
+      status: string
+      validated_at: Date | null
+      created_at: Date
+      items: Array<{
+        product: {
+          name: string
+          image: string | null
+          price: number
+          cashbackPercentage: number
+        }
+        quantity: number
+      }>
+    }>
+  > {
+    throw new Error('Method not implemented.')
+  }
+  getItemsByOrderId(orderId: string): Promise<OrderItem[]> {
+    throw new Error('Method not implemented.')
+  }
   updateStatus(orderId: string, status: OrderStatus): Promise<Order | null> {
     throw new Error('Method not implemented.')
   }

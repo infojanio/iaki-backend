@@ -30,6 +30,7 @@ export interface OrdersRepository {
       created_at: Date
       items: Array<{
         product: {
+          id: string
           name: string
           image: string | null
           price: number
@@ -55,6 +56,7 @@ export interface OrdersRepository {
       created_at: Date
       items: Array<{
         product: {
+          id: string
           name: string
           image: string | null
           price: number

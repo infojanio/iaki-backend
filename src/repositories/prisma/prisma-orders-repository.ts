@@ -15,6 +15,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
           include: {
             product: {
               select: {
+                id: true,
                 name: true,
                 price: true,
                 image: true,
@@ -82,6 +83,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
       created_at: order.created_at,
       items: order.orderItems.map((item) => ({
         product: {
+          id: item.product.id,
           name: item.product.name,
           image: item.product.image ?? null,
           price: new Decimal(item.product.price).toNumber(),
@@ -115,9 +117,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
         created_at: 'desc',
       },
     })
-
-    // Normalizando os dados retornados
-    return orders.map((order) => ({
+    const orderItem = orders.map((order) => ({
       id: order.id,
       store_id: order.store_id,
       totalAmount: new Decimal(order.totalAmount).toNumber(),
@@ -127,6 +127,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
       created_at: order.created_at,
       items: order.orderItems.map((item) => ({
         product: {
+          id: item.product.id,
           name: item.product.name,
           image: item.product.image ?? null,
           price: new Decimal(item.product.price).toNumber(),
@@ -135,6 +136,9 @@ export class PrismaOrdersRepository implements OrdersRepository {
         quantity: new Decimal(item.quantity).toNumber(), // Convertendo para number
       })),
     }))
+    // Normalizando os dados retornados
+    console.log('itens do pedido:', orderItem)
+    return orderItem
   }
 
   async create(data: Prisma.OrderUncheckedCreateInput) {

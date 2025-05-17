@@ -1,4 +1,3 @@
-// src/use-cases/fetch-user-orders-history.ts
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
 import { OrderStatus } from '@prisma/client'
 
@@ -13,18 +12,18 @@ interface FetchOrderOrdersHistoryUseCaseResponse {
     id: string
     store_id: string
     totalAmount: number
-    qrCodeUrl?: string // Agora é string | undefined
+    qrCodeUrl?: string
     status: string
     validated_at: Date | null
     created_at: Date
     items: Array<{
       product: {
-        //  id: string
+        id: string
         name: string
-        image: string | null
+        image?: string | null
         price: number
         cashbackPercentage: number
-      }
+      } | null
       quantity: number
     }>
   }>
@@ -48,14 +47,24 @@ export class FetchOrderOrdersHistoryUseCase {
 
     return {
       orders: orders.map((order) => ({
-        ...order,
-        qrCodeUrl: order.qrCodeUrl ?? undefined, // Garantindo que qrCodeUrl seja string | undefined
+        id: order.id,
+        store_id: order.store_id,
+        totalAmount: order.totalAmount,
+        qrCodeUrl: order.qrCodeUrl ?? undefined,
+        status: order.status,
+        validated_at: order.validated_at,
+        created_at: order.created_at,
         items: order.items.map((item) => ({
-          ...item,
-          product: {
-            ...item.product,
-            image: item.product.image ?? '',
-          },
+          product: item.product
+            ? {
+                id: item.product.id,
+                name: item.product.name,
+                image: item.product.image ?? null,
+                price: item.product.price,
+                cashbackPercentage: item.product.cashbackPercentage,
+              }
+            : null,
+          quantity: item.quantity,
         })),
       })),
     }
