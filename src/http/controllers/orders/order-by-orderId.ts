@@ -30,20 +30,21 @@ export async function getOrderByOrderId(
       status: validStatus,
     })
 
+    // Formatando os pedidos para garantir a consistência dos tipos e estrutura
     const formattedOrders = orders.map((order) => ({
       id: order.id,
       totalAmount: order.totalAmount,
       status: order.status,
-      qrCodeUrl: order.qrCodeUrl ?? undefined,
+      qrCodeUrl: order.qrCodeUrl ?? undefined, // Garantindo que `qrCodeUrl` seja string | undefined
       storeId: order.store_id,
       createdAt: order.created_at,
       items: order.items.map((item) => ({
-        productId: item.product?.id ?? null,
-        name: item.product?.name ?? 'Produto desconhecido',
-        image: item.product?.image ?? null,
-        price: item.product?.price ?? 0,
+        productId: item.product, // Asegurando que estamos acessando o ID do produto
+        name: item.product?.name,
+        image: item.product?.image ?? null, // Garantindo que `image` seja string | null
+        price: item.product?.price,
         quantity: item.quantity,
-        cashbackPercentage: item.product?.cashbackPercentage ?? 0,
+        cashbackPercentage: item.product?.cashbackPercentage,
       })),
     }))
 
