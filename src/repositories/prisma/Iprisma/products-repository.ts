@@ -1,8 +1,17 @@
 import { Prisma, Product } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
 
 export interface ProductsRepository {
-  findById(id: string): Promise<Product | null>
+  findByIdProduct(id: string): Promise<Product | null>
+  findById(
+    id: string,
+    options?: { select?: Prisma.ProductSelect }, // Adicione esta opção
+  ): Promise<Product | Partial<Product> | null>
   findByIds(ids: string[]): Promise<Product[]>
+  getProductStock(productId: string): Promise<number | Decimal>
+  getProductStockDetails(
+    productId: string,
+  ): Promise<{ quantity: number; name: string } | null>
   updateStock(id: string, quantity: number): Promise<Product>
   findByStoreId(store_id: string): Promise<Product[] | null>
   findBySubcategoryId(subcategory_id: string): Promise<Product[] | null>
@@ -13,8 +22,22 @@ export interface ProductsRepository {
   findBySubCategory(subcategory_id: string): Promise<Product[]> //buscar por subcategoria
   searchMany(search: string, page: number): Promise<Product[]> //buscar por nome
   update(
-    product_id: string,
-    data: Prisma.ProductUncheckedUpdateInput,
+    id: string,
+    data: {
+      name?: string
+      description?: string
+      price?: number
+      quantity?:
+        | number
+        | { increment: number }
+        | { decrement: number }
+        | { set: number }
+      image?: string
+      status?: boolean
+      cashbackPercentage?: number
+      store_id?: string
+      subcategory_id?: string
+    },
   ): Promise<Product>
   delete(where: Prisma.ProductWhereUniqueInput): Promise<Product>
 }

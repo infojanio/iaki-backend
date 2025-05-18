@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { Product, Prisma } from '@prisma/client'
 import { ProductsRepository } from './Iprisma/products-repository'
 import { ResourceNotFoundError } from '@/utils/messages/errors/resource-not-found-error'
+import { Decimal } from '@prisma/client/runtime/library'
 
 export class PrismaProductsRepository implements ProductsRepository {
   async create(data: Prisma.ProductUncheckedCreateInput): Promise<Product> {
@@ -14,7 +15,7 @@ export class PrismaProductsRepository implements ProductsRepository {
     return product
   }
 
-  async findById(id: string): Promise<Product | null> {
+  async findByIdProduct(id: string): Promise<Product | null> {
     const product = await prisma.product.findUnique({
       where: {
         id,
@@ -24,6 +25,16 @@ export class PrismaProductsRepository implements ProductsRepository {
       },
     })
     return product
+  }
+
+  async findById(
+    id: string,
+    options?: { select?: Prisma.ProductSelect },
+  ): Promise<Product | Partial<Product> | null> {
+    return prisma.product.findUnique({
+      where: { id },
+      select: options?.select, // Passa o select se existir
+    })
   }
 
   async findByIds(ids: string[]): Promise<Product[]> {
@@ -52,16 +63,50 @@ export class PrismaProductsRepository implements ProductsRepository {
     return product
   }
 
-  async updateStock(id: string, quantity: number): Promise<Product> {
-    const productUpdate = await prisma.product.update({
+  async getProductStock(productId: string): Promise<number | Decimal> {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { quantity: true },
+    })
+
+    if (!product) {
+      throw new ResourceNotFoundError()
+    }
+
+    return Number(product.quantity) // Converte Decimal para número
+  }
+
+  async getProductStockDetails(
+    productId: string,
+  ): Promise<{ quantity: number; name: string }> {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { quantity: true, name: true },
+    })
+
+    if (!product) {
+      throw new ResourceNotFoundError()
+    }
+
+    return {
+      quantity: Number(product.quantity),
+      name: product.name,
+    }
+  }
+
+  async updateStock(
+    id: string,
+    quantity: number,
+    action: 'increment' | 'decrement' = 'decrement',
+  ): Promise<Product> {
+    return await prisma.product.update({
       where: { id },
       data: {
         quantity: {
-          decrement: quantity, // Reduz o estoque
+          [action]: Math.abs(quantity), // Garante valor positivo
         },
       },
     })
-    return productUpdate
   }
 
   async listMany(): Promise<Product[]> {
@@ -118,17 +163,30 @@ export class PrismaProductsRepository implements ProductsRepository {
   }
 
   async update(
-    product_id: string,
-    data: Prisma.ProductUncheckedUpdateInput,
+    id: string,
+    data: {
+      name?: string
+      description?: string
+      price?: number
+      quantity?:
+        | number
+        | { increment: number }
+        | { decrement: number }
+        | { set: number }
+      image?: string
+      status?: boolean
+      cashbackPercentage?: number
+      store_id?: string
+      subcategory_id?: string
+    },
   ): Promise<Product> {
-    try {
-      return await prisma.product.update({
-        where: { id: product_id },
-        data,
-      })
-    } catch (error) {
-      throw new ResourceNotFoundError()
-    }
+    return prisma.product.update({
+      where: { id },
+      data: {
+        ...data,
+        quantity: data.quantity, // O Prisma entenderá automaticamente increment/decrement/set
+      },
+    })
   }
 
   async delete(where: Prisma.ProductWhereUniqueInput): Promise<Product> {
