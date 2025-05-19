@@ -12,6 +12,10 @@ export interface ProductsRepository {
   getProductStockDetails(
     productId: string,
   ): Promise<{ quantity: number; name: string } | null>
+  updateQuantity(
+    id: string,
+    data: { quantity: number; status: boolean },
+  ): Promise<Product>
   updateStock(id: string, quantity: number): Promise<Product>
   findByStoreId(store_id: string): Promise<Product[] | null>
   findBySubcategoryId(subcategory_id: string): Promise<Product[] | null>

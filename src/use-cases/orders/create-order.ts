@@ -1,6 +1,6 @@
 import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { OrderItem, UserLocation } from '@prisma/client'
 import { UserLocationRepository } from '@/repositories/prisma/Iprisma/user-locations-repository'
+import { ProductsRepository } from '@/repositories/prisma/Iprisma/products-repository'
 
 interface CreateOrderUseCaseRequest {
   user_id: string
@@ -18,6 +18,7 @@ export class OrderUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
     private userLocationRepository: UserLocationRepository,
+    private productsRepository: ProductsRepository, // <- novo
   ) {}
 
   async execute({
@@ -41,6 +42,28 @@ export class OrderUseCase {
         user_id,
         latitude,
         longitude,
+      })
+    }
+
+    // Atualiza o estoque dos produtos e status
+    for (const item of items) {
+      const product = await this.productsRepository.findByIdProduct(
+        item.product_id,
+      )
+
+      if (!product) {
+        throw new Error(`Produto com ID ${item.product_id} não encontrado.`)
+      }
+
+      const newQuantity = product.quantity - item.quantity
+
+      if (newQuantity < 0) {
+        throw new Error(`Estoque insuficiente para o produto ${product.name}.`)
+      }
+
+      await this.productsRepository.updateQuantity(product.id, {
+        quantity: newQuantity,
+        status: newQuantity > 0, // desativa se quantidade for 0
       })
     }
 

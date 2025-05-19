@@ -162,6 +162,16 @@ export class PrismaProductsRepository implements ProductsRepository {
     return products
   }
 
+  async updateQuantity(
+    id: string,
+    data: { quantity: number; status: boolean },
+  ) {
+    return prisma.product.update({
+      where: { id },
+      data,
+    })
+  }
+
   async update(
     id: string,
     data: {
