@@ -22,6 +22,7 @@ export interface ProductsRepository {
   create(data: Prisma.ProductUncheckedCreateInput): Promise<Product>
 
   listMany(): Promise<Product[]> //listar todos
+  listManyProductActive(): Promise<Product[]>
 
   searchByName(query: string, page: number): Promise<Product[]>
   findByQuantity(quantity: number): Promise<Product[]> //buscar  por quantidade

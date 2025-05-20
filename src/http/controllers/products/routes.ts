@@ -10,6 +10,7 @@ import { updateProduct } from './update-product'
 import { getStock, updateStock } from './get-stock'
 import { getProduct } from './get-product'
 import { searchProducts } from './search-products'
+import { listProductsActive } from './listProductsActive'
 
 export async function productsRoutes(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -18,6 +19,7 @@ export async function productsRoutes(app: FastifyInstance) {
   app.get('/products/quantity', fetchProductsByQuantity)
   app.get('/products/cashback', fetchProductsByCashback)
   app.get('/products', listProducts)
+  app.get('/products/active', listProductsActive)
   app.get('/products/subcategory', fetchProductsBySubCategory)
 
   // Rota para detalhes do produto

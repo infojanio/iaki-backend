@@ -114,6 +114,16 @@ export class PrismaProductsRepository implements ProductsRepository {
     return products
   }
 
+  async listManyProductActive(): Promise<Product[]> {
+    const products = await prisma.product.findMany({
+      where: {
+        status: true, // ⬅️ Mostra apenas produtos ativos
+      },
+    })
+
+    return products
+  }
+
   async findByCashback(): Promise<Product[]> {
     const products = await prisma.product.findMany({
       where: {
