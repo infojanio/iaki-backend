@@ -9,6 +9,7 @@ import { fetchProductsByQuantity } from './fetch-products-by-quantity'
 import { updateProduct } from './update-product'
 import { getStock, updateStock } from './get-stock'
 import { getProduct } from './get-product'
+import { searchProducts } from './search-products'
 
 export async function productsRoutes(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
@@ -30,6 +31,7 @@ export async function productsRoutes(app: FastifyInstance) {
     updateProduct,
   )
   app.get('/products/:productId/stock', getStock)
+  app.get('/products/search', searchProducts)
   app.patch(
     '/products/:productId/stock',
     { onRequest: [verifyUserRole('ADMIN')] },
