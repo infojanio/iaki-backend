@@ -211,14 +211,17 @@ export class PrismaProductsRepository implements ProductsRepository {
       data: { status: false }, // Marca como "deletado"
     })
   }
-  async searchByName(query: string): Promise<Product[]> {
+  async searchByName(query: string, page: number): Promise<Product[]> {
     return prisma.product.findMany({
       where: {
         name: {
           contains: query,
           mode: 'insensitive', // case-insensitive
         },
+        status: true, // ⬅️ Mostra apenas produtos ativos
       },
+      take: 20,
+      skip: (page - 1) * 20,
     })
   }
 }

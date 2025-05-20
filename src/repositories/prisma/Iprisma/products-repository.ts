@@ -20,8 +20,10 @@ export interface ProductsRepository {
   findByStoreId(store_id: string): Promise<Product[] | null>
   findBySubcategoryId(subcategory_id: string): Promise<Product[] | null>
   create(data: Prisma.ProductUncheckedCreateInput): Promise<Product>
+
   listMany(): Promise<Product[]> //listar todos
-  searchByName(query: string): Promise<Product[]>
+
+  searchByName(query: string, page: number): Promise<Product[]>
   findByQuantity(quantity: number): Promise<Product[]> //buscar  por quantidade
   findByCashback(cashbackPercentage: number): Promise<Product[]> //buscar  % cashback
   findBySubCategory(subcategory_id: string): Promise<Product[]> //buscar por subcategoria
