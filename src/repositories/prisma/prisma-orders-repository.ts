@@ -11,7 +11,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
     return this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        items: {
+        orderItems: {
           include: {
             product: {
               select: {
@@ -182,6 +182,16 @@ export class PrismaOrdersRepository implements OrdersRepository {
     await prisma.order.update({
       where: { id: order_id },
       data: { validated_at: new Date() },
+    })
+  }
+
+  async validateOrder(orderId: string) {
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: 'VALIDATED',
+        validated_at: new Date(),
+      },
     })
   }
 

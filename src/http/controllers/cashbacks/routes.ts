@@ -14,10 +14,4 @@ export async function cashbacksRoutes(app: FastifyInstance) {
   app.get('/cashbacks/history', history)
 
   app.post('/cashbacks/redeem', redeemCashback) //resgate
-
-  app.patch(
-    '/cashbacks/:orderId/validate',
-    { onRequest: [verifyUserRole('ADMIN')] },
-    validateCashback,
-  )
 }

@@ -1,5 +1,11 @@
-import { Order, OrderItem, OrderStatus, Prisma } from '@prisma/client'
+import { Order, OrderItem, OrderStatus, Prisma, Product } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
+
+export type OrderWithItemsAndProducts = Order & {
+  orderItems: (OrderItem & {
+    product: Product
+  })[]
+}
 
 export interface OrdersRepository {
   create(data: Prisma.OrderUncheckedCreateInput): Promise<Order>
@@ -9,7 +15,8 @@ export interface OrdersRepository {
     items: { product_id: string; quantity: number; subtotal: number }[],
   ): Promise<void>
 
-  findById(id: string): Promise<Order | null>
+  findById(orderId: string): Promise<OrderWithItemsAndProducts | null>
+  validateOrder(orderId: string): Promise<void>
   markAsValidated(order_id: string): Promise<void>
   findByUserIdLastHour(
     userId: string,

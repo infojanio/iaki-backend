@@ -59,6 +59,28 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     })
   }
 
+  async createCashback({ userId, orderId, amount }: any) {
+    return await prisma.cashback.create({
+      data: {
+        user_id: userId,
+        order_id: orderId,
+        amount,
+        validated: true,
+        credited_at: new Date(),
+      },
+    })
+  }
+
+  async createTransaction({ userId, amount, type }: any) {
+    return await prisma.cashbackTransaction.create({
+      data: {
+        user_id: userId,
+        amount,
+        type,
+      },
+    })
+  }
+
   async getBalance(user_id: string): Promise<number> {
     const total = await this.totalCashbackByUserId(user_id)
     const used = await this.totalUsedCashbackByUserId(user_id)
