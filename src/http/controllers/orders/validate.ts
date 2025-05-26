@@ -5,9 +5,12 @@ import { makeValidateOrderUseCase } from '@/use-cases/_factories/make-validate-o
 export async function validate(request: FastifyRequest, reply: FastifyReply) {
   const validateOrderParamsSchema = z.object({
     orderId: z.string().uuid(),
+    cashbackAmount: z.number().positive(),
   })
 
-  const { orderId } = validateOrderParamsSchema.parse(request.params)
+  const { orderId, cashbackAmount } = validateOrderParamsSchema.parse(
+    request.params,
+  )
   const adminUserId = request.user.sub // ID do usuário autenticado (ADMIN)
 
   const validateOrderUseCase = makeValidateOrderUseCase()

@@ -12,6 +12,7 @@ import { cartsRoutes } from '@/http/controllers/carts/routes'
 import { productsRoutes } from '@/http/controllers/products/routes'
 import { subcategoriesRoutes } from '@/http/controllers/subcategories/routes'
 import { categoriesRoutes } from './http/controllers/categories/routes'
+import { cashbacksRoutes } from './http/controllers/cashbacks/routes'
 
 export const app = fastify({
   //logger: true,
@@ -33,6 +34,7 @@ app.register(usersRoutes)
 app.register(cartsRoutes)
 app.register(storesRoutes)
 app.register(categoriesRoutes)
+app.register(cashbacksRoutes)
 app.register(subcategoriesRoutes)
 app.register(productsRoutes)
 app.register(ordersRoutes)

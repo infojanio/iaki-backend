@@ -11,20 +11,21 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(uuid())
-  name         String
-  email        String         @unique
-  passwordHash String         @map("password_hash")
-  phone        String
-  role         Role           @default(USER)
-  avatar       String?
-  address      Address[] // Relacionamento com o endereço
-  orders       Order[]
-  carts        Cart[]
-  cashbacks    Cashback[]
-  created_at   DateTime       @default(now()) @map("created_at")
-  RefreshToken RefreshToken[]
-  UserLocation UserLocation[]
+  id                  String                @id @default(uuid())
+  name                String
+  email               String                @unique
+  passwordHash        String                @map("password_hash")
+  phone               String
+  role                Role                  @default(USER)
+  avatar              String?
+  address             Address[] // Relacionamento com o endereço
+  orders              Order[]
+  carts               Cart[]
+  cashbacks           Cashback[]
+  created_at          DateTime              @default(now()) @map("created_at")
+  RefreshToken        RefreshToken[]
+  UserLocation        UserLocation[]
+  CashbackTransaction CashbackTransaction[]
 
   @@map("users")
 }
@@ -128,14 +129,32 @@ model OrderItem {
 
 model Cashback {
   id          String   @id @default(uuid())
-  user_id     String   @map("user_id")
-  user        User     @relation(fields: [user_id], references: [id])
-  order_id    String?  @map("order_id")
-  order       Order?   @relation(fields: [order_id], references: [id])
+  user_id     String
+  order_id    String?
   amount      Decimal
-  credited_at DateTime @default(now()) @map("credited_at")
+  validated   Boolean  @default(false)
+  credited_at DateTime
+
+  user  User   @relation(fields: [user_id], references: [id])
+  order Order? @relation(fields: [order_id], references: [id])
 
   @@map("cashbacks")
+}
+
+model CashbackTransaction {
+  id         String                  @id @default(uuid())
+  user_id    String                  @map("user_id")
+  user       User                    @relation(fields: [user_id], references: [id])
+  amount     Decimal
+  type       CashbackTransactionType
+  created_at DateTime                @default(now()) @map("created_at")
+
+  @@map("cashback_transactions")
+}
+
+enum CashbackTransactionType {
+  RECEIVE
+  USE
 }
 
 model Address {

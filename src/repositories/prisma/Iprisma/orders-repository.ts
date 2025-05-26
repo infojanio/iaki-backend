@@ -10,6 +10,7 @@ export interface OrdersRepository {
   ): Promise<void>
 
   findById(id: string): Promise<Order | null>
+  markAsValidated(order_id: string): Promise<void>
   findByUserIdLastHour(
     userId: string,
     date: Date,

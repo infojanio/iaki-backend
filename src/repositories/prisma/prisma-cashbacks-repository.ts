@@ -31,6 +31,40 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     })
   }
 
+  async findById(cashbackId: string): Promise<Cashback | null> {
+    const cashback = await prisma.cashback.findUnique({
+      where: {
+        id: cashbackId,
+      },
+    })
+
+    if (!cashback) {
+      return null
+    }
+
+    return {
+      id: cashback.id,
+      order_id: cashback.order_id,
+      user_id: cashback.user_id,
+      amount: cashback.amount,
+      validated: cashback.validated,
+      credited_at: cashback.credited_at,
+    }
+  }
+
+  async validateCashback(id: string) {
+    await prisma.cashback.update({
+      where: { id },
+      data: { validated: true },
+    })
+  }
+
+  async getBalance(user_id: string): Promise<number> {
+    const total = await this.totalCashbackByUserId(user_id)
+    const used = await this.totalUsedCashbackByUserId(user_id)
+    return total - used
+  }
+
   // ✅ Aplica cashback ao pedido
   async applyCashback(
     order_id: string,

@@ -37,6 +37,12 @@ export class PrismaProductsRepository implements ProductsRepository {
     })
   }
 
+  async findProductById(id: string): Promise<Product | null> {
+    return await prisma.product.findUnique({
+      where: { id },
+    })
+  }
+
   async findByIds(ids: string[]): Promise<Product[]> {
     return prisma.product.findMany({
       where: {
@@ -127,12 +133,12 @@ export class PrismaProductsRepository implements ProductsRepository {
   async findByCashback(): Promise<Product[]> {
     const products = await prisma.product.findMany({
       where: {
-        status: true, // ⬅️ Mostra apenas produtos ativos
-        cashbackPercentage: {
-          gte: 5, // Retorna produtos com cashback maior ou igual a 5
-          //   gte: cashbackPercentage, // Busca produtos com cashback maior que o valor informado
-        },
+        status: true, // Mostra apenas produtos ativos
       },
+      orderBy: {
+        cashbackPercentage: 'desc', // Ordena pelo maior cashback primeiro
+      },
+      take: 4, // Limita a 4 produtos
     })
 
     return products
@@ -141,12 +147,12 @@ export class PrismaProductsRepository implements ProductsRepository {
   async findByQuantity(): Promise<Product[]> {
     const products = await prisma.product.findMany({
       where: {
-        status: true, // ⬅️ Mostra apenas produtos ativos
-        quantity: {
-          lte: 5, // Retorna produtos com quantidade menor ou igual a 5
-          //   gte: cashbackPercentage, // Busca produtos com cashback maior que o valor informado
-        },
+        status: true, // Mostra apenas produtos ativos
       },
+      orderBy: {
+        quantity: 'asc', // Ordena pela menor quantidade primeiro
+      },
+      take: 4, // Limita a 4 produtos
     })
 
     return products

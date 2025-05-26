@@ -3,6 +3,7 @@ import { Decimal } from '@prisma/client/runtime/library'
 
 export interface ProductsRepository {
   findByIdProduct(id: string): Promise<Product | null>
+  findProductById(id: string): Promise<Product | null>
   findById(
     id: string,
     options?: { select?: Prisma.ProductSelect }, // Adicione esta opção

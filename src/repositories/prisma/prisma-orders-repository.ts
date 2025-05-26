@@ -178,6 +178,13 @@ export class PrismaOrdersRepository implements OrdersRepository {
     })
   }
 
+  async markAsValidated(order_id: string): Promise<void> {
+    await prisma.order.update({
+      where: { id: order_id },
+      data: { validated_at: new Date() },
+    })
+  }
+
   async balanceByUserId(userId: string): Promise<number> {
     const validatedCashbacks = await prisma.cashback.findMany({
       where: { user_id: userId, order: { validated_at: { not: null } } },
