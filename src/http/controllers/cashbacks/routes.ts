@@ -13,5 +13,5 @@ export async function cashbacksRoutes(app: FastifyInstance) {
   app.get('/cashbacks/balance', balance)
   app.get('/cashbacks/history', history)
 
-  app.post('/cashbacks/redeem', redeemCashback) //resgate
+  app.post('/cashbacks/redeem', redeemCashback) //resgate de cashback
 }
