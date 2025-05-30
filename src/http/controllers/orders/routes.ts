@@ -9,13 +9,14 @@ import { getOrderByUser } from './order-by-user'
 import { getOrderByOrderId } from './order-by-orderId'
 import { getOrder } from './get-order'
 import { validateOrderAndCreditCashback } from '../cashbacks/validate-order-and-credit-cashback'
+import { allOrdersHistory } from './all-orders-history'
 
 export async function ordersRoutes(app: FastifyInstance) {
   app.addHook('onRequest', verifyJWT)
 
   // Buscar carrinho do usuário autenticado
 
-  app.get('/orders/history', history)
+  app.get('/orders/history', history) //historico de pedidos por usuário
   app.get('/orders/cart', getCart)
   app.get('/order', getOrder)
   app.post('/orders', createOrder)
@@ -26,5 +27,12 @@ export async function ordersRoutes(app: FastifyInstance) {
     '/orders/:orderId/validate',
     { onRequest: [verifyUserRole('ADMIN')] },
     validateOrderAndCreditCashback,
+  )
+
+  //historico de todos os pedidos
+  app.get(
+    '/orders/allhistory',
+    { onRequest: [verifyUserRole('ADMIN')] },
+    allOrdersHistory,
   )
 }
