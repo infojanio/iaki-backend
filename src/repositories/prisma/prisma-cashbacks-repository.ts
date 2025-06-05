@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { CashbacksRepository } from './Iprisma/cashbacks-repository'
-import { Cashback, Prisma } from '@prisma/client'
+import { Cashback, CashbackTransaction, Prisma } from '@prisma/client'
 
 export class PrismaCashbacksRepository implements CashbacksRepository {
   // Retorna o total de cashback recebido pelo usuário
@@ -59,26 +59,71 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     })
   }
 
-  async createCashback({ userId, orderId, amount }: any) {
-    return await prisma.cashback.create({
-      data: {
-        user_id: userId,
-        order_id: orderId,
-        amount,
-        validated: true,
-        credited_at: new Date(),
-      },
-    })
+  async createCashback({
+    userId,
+    orderId,
+    amount,
+  }: {
+    userId: string
+    orderId: string
+    amount: number
+  }): Promise<Cashback> {
+    console.log(
+      `[Repository] Criando cashback - User: ${userId}, Order: ${orderId}, Amount: ${amount}`,
+    )
+
+    try {
+      const decimalAmount = new Prisma.Decimal(amount)
+      console.log(
+        `[Repository] Valor convertido para Decimal: ${decimalAmount}`,
+      )
+
+      const cashback = await prisma.cashback.create({
+        data: {
+          user_id: userId,
+          order_id: orderId,
+          amount: decimalAmount,
+          validated: true,
+          credited_at: new Date(),
+        },
+      })
+
+      console.log(`[Repository] Cashback criado com ID: ${cashback.id}`)
+      return cashback
+    } catch (error) {
+      console.error('[Repository] Erro ao criar cashback:', error)
+      throw error
+    }
   }
 
-  async createTransaction({ userId, amount, type }: any) {
-    return await prisma.cashbackTransaction.create({
-      data: {
-        user_id: userId,
-        amount,
-        type,
-      },
-    })
+  async createTransaction({
+    userId,
+    amount,
+    type,
+  }: {
+    userId: string
+    amount: number
+    type: 'RECEIVE' | 'USE'
+  }): Promise<CashbackTransaction> {
+    console.log(
+      `[Repository] Criando transação - User: ${userId}, Amount: ${amount}, Type: ${type}`,
+    )
+
+    try {
+      const transaction = await prisma.cashbackTransaction.create({
+        data: {
+          user_id: userId,
+          amount: new Prisma.Decimal(amount),
+          type,
+        },
+      })
+
+      console.log(`[Repository] Transação criada com ID: ${transaction.id}`)
+      return transaction
+    } catch (error) {
+      console.error('[Repository] Erro ao criar transação:', error)
+      throw error
+    }
   }
 
   async getBalance(user_id: string): Promise<number> {

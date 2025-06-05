@@ -1,11 +1,11 @@
 import { CategoriesRepository } from '@/repositories/prisma/Iprisma/categories-repository'
-import { Category, Prisma } from '@prisma/client'
+import { Category } from '@prisma/client'
 interface CreateCategoryUseCaseRequest {
   id?: string
   name: string
   image: string | null
   created_at: Date
-  //subcategory: string
+  // subcategory: string
 }
 interface CreateCategoryUseCaseResponse {
   category: Category

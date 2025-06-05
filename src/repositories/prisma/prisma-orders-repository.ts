@@ -7,25 +7,47 @@ import QRCode from 'qrcode'
 
 export class PrismaOrdersRepository implements OrdersRepository {
   prisma: any
+
   async findById(orderId: string) {
-    return this.prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                image: true,
-                cashbackPercentage: true,
+    console.log(`[Repository] Buscando pedido com ID: ${orderId}`)
+
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  cashbackPercentage: true,
+                },
               },
             },
           },
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
-      },
-    })
+      })
+
+      if (!order) {
+        console.log(`[Repository] Pedido não encontrado: ${orderId}`)
+        return null
+      }
+
+      console.log(`[Repository] Pedido encontrado:`, {
+        id: order.id,
+        status: order.status,
+        itemsCount: order.orderItems.length,
+      })
+
+      return order
+    } catch (error) {
+      console.error(`[Repository] Erro ao buscar pedido ${orderId}:`, error)
+      throw error
+    }
   }
 
   async updateStatus(
@@ -56,7 +78,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
     const orders = await prisma.order.findMany({
       where: {
         user_id: userId,
-        status: status ? status : undefined,
+        status: status || undefined,
       },
       include: {
         orderItems: {
@@ -66,7 +88,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
         },
       },
       skip: (page - 1) * 10,
-      take: 10,
+      take: 20,
       orderBy: {
         created_at: 'desc',
       },
@@ -97,8 +119,8 @@ export class PrismaOrdersRepository implements OrdersRepository {
   async findManyWithItems(page: number, status: OrderStatus, storeId?: string) {
     const orders = await prisma.order.findMany({
       where: {
-        status: status ? status : undefined,
-        store_id: storeId ? storeId : undefined,
+        status: status || undefined,
+        store_id: storeId || undefined,
       },
       include: {
         orderItems: {
@@ -108,7 +130,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
         },
       },
       skip: (page - 1) * 10,
-      take: 10,
+      take: 50,
       orderBy: {
         created_at: 'desc',
       },
@@ -144,7 +166,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
     const orders = await prisma.order.findMany({
       where: {
         id: { contains: orderId }, // Busca por parte do ID
-        status: status ? status : undefined,
+        status: status || undefined,
       },
       include: {
         orderItems: {
@@ -223,6 +245,9 @@ export class PrismaOrdersRepository implements OrdersRepository {
   }
 
   async validateOrder(orderId: string) {
+    const order = await prisma.order.findUnique({ where: { id: orderId } })
+    if (!order) throw new Error('Order not found.')
+
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -243,12 +268,27 @@ export class PrismaOrdersRepository implements OrdersRepository {
       0,
     )
   }
-  async getItemsByOrderId(orderId: string): Promise<OrderItem[]> {
+
+  async getItemsByOrderId(
+    orderId: string,
+  ): Promise<
+    (OrderItem & {
+      product: {
+        id: string
+        name: string
+        price: number | Decimal
+        cashbackPercentage: number
+        image: string | null
+        store: {
+          id: string
+          name: string
+        }
+      }
+    })[]
+  > {
     return await prisma.orderItem.findMany({
       where: {
-        order: {
-          id: orderId,
-        },
+        order_id: orderId,
       },
       include: {
         product: {

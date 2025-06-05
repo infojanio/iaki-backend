@@ -16,7 +16,7 @@ export async function ordersRoutes(app: FastifyInstance) {
 
   // Buscar carrinho do usuário autenticado
 
-  app.get('/orders/history', history) //historico de pedidos por usuário
+  app.get('/orders/history', history) // historico de pedidos por usuário
   app.get('/orders/cart', getCart)
   app.get('/order', getOrder)
   app.post('/orders', createOrder)
@@ -29,10 +29,6 @@ export async function ordersRoutes(app: FastifyInstance) {
     validateOrderAndCreditCashback,
   )
 
-  //historico de todos os pedidos
-  app.get(
-    '/orders/allhistory',
-    { onRequest: [verifyUserRole('ADMIN')] },
-    allOrdersHistory,
-  )
+  // historico de todos os pedidos
+  app.get('/orders', { onRequest: [verifyUserRole('ADMIN')] }, allOrdersHistory)
 }

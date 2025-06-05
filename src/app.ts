@@ -15,7 +15,7 @@ import { categoriesRoutes } from './http/controllers/categories/routes'
 import { cashbacksRoutes } from './http/controllers/cashbacks/routes'
 
 export const app = fastify({
-  //logger: true,
+  // logger: true,
 })
 // Habilita JSON no body
 app.register(fastifyFormBody)
@@ -23,7 +23,7 @@ app.register(fastifyJwt, { secret: process.env.JWT_SECRET! })
 app.register(fastifyCors, {
   origin: [
     'https://iaki.com.br', // ✅ frontend hospedado
-    //'http://localhost:5173', // opcional para dev local
+    // 'http://localhost:5173', // opcional para dev local
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -40,7 +40,7 @@ app.register(productsRoutes)
 app.register(ordersRoutes)
 
 app.addHook('preHandler', async (request, reply) => {
-  //console.log('REQUEST BODY:', request.body)
+  // console.log('REQUEST BODY:', request.body)
 })
 
 app.setErrorHandler((error, _request, reply) => {
