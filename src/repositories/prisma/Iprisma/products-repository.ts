@@ -27,7 +27,7 @@ export interface ProductsRepository {
 
   searchByName(query: string, page: number): Promise<Product[]>
   findByQuantity(quantity: number): Promise<Product[]> //buscar  por quantidade
-  findByCashback(cashbackPercentage: number): Promise<Product[]> //buscar  % cashback
+  findByCashback(cashback_percentage: number): Promise<Product[]> //buscar  % cashback
   findBySubCategory(subcategory_id: string): Promise<Product[]> //buscar por subcategoria
   searchMany(search: string, page: number): Promise<Product[]> //buscar por nome
   update(
@@ -43,7 +43,7 @@ export interface ProductsRepository {
         | { set: number }
       image?: string
       status?: boolean
-      cashbackPercentage?: number
+      cashback_percentage?: number
       store_id?: string
       subcategory_id?: string
     },

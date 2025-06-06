@@ -8,17 +8,17 @@ export async function redeemCashback(
   reply: FastifyReply,
 ) {
   const bodySchema = z.object({
-    product_id: z.string().uuid(),
+    order_id: z.string(),
     amount: z.number().positive('O saldo deve ser positivo!'),
   })
 
-  const { product_id, amount } = bodySchema.parse(request.body)
+  const { order_id, amount } = bodySchema.parse(request.body)
 
   const redeemCashbackUseCase = makeRedeemCashbackUseCase()
 
   await redeemCashbackUseCase.execute({
     user_id: request.user.sub,
-    product_id,
+    order_id,
     amount,
   })
 

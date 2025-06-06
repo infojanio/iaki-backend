@@ -18,7 +18,7 @@ describe('Get Product Use Case', () => {
       image: 'IMAGEM.jpg',
       price: 30,
       quantity: 10,
-      cashbackPercentage: 15,
+      cashback_percentage: 15,
       status: true,
       store_id: '224fdfd33',
       subcategory_id: '11sdsd21',

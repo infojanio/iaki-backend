@@ -23,7 +23,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashbackPercentage: number
+          cashback_percentage: number
         }
         quantity: number
       }>
@@ -49,7 +49,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashbackPercentage: number
+          cashback_percentage: number
         }
         quantity: number
       }>

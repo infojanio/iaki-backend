@@ -77,7 +77,7 @@
    name (String, obrigatório)
    description (String, opcional)
    price (Decimal, obrigatório)
-   cashbackPercentage (Float, obrigatório, ex.: 0.05 para 5%)
+   cashback_percentage (Float, obrigatório, ex.: 0.05 para 5%)
    storeId (String, FK para stores.id)
    created_at (DateTime, padrão: now)
    updatedAt (DateTime, atualizado automaticamente)

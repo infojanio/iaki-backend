@@ -84,7 +84,7 @@ describe('Create Order Use Case', () => {
         image: 'foto.jpg',
         store_id: 'f6d6a0a6-2f1c-486f-88ff-740469735339', // Agora enviados no corpo
         subcategory_id: 'f6d6a0a6-2f1c-486f-88ff-740469735338',
-        cashbackPercentage: 15,
+        cashback_percentage: 15,
         status: true,
         created_at: new Date(),
       },
@@ -101,7 +101,7 @@ describe('Create Order Use Case', () => {
         image: 'foto.jpg',
         store_id: 'f6d6a0a6-2f1c-486f-88ff-740469735339', // Agora enviados no corpo
         subcategory_id: 'f6d6a0a6-2f1c-486f-88ff-740469735338',
-        cashbackPercentage: 15,
+        cashback_percentage: 15,
         status: true,
         created_at: new Date(),
       },

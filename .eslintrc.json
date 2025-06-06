@@ -1,6 +1,9 @@
 {
   "extends": ["@rocketseat/eslint-config/node"],
   "rules": {
-    "camelcase": "off"
+    "camelcase": "off",
+    "no-useless-constructor": "off",
+    // ou para apenas avisar em vez de dar erro:
+    "no-useless-constructor": "warn"
   }
 }

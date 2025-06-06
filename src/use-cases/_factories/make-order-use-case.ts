@@ -1,29 +1,21 @@
 import { PrismaOrdersRepository } from '@/repositories/prisma/prisma-orders-repository'
-import { PrismaStoresRepository } from '@/repositories/prisma/prisma-stores-repository'
-import { OrderUseCase } from '../orders/order'
-import { PrismaProductsRepository } from '@/repositories/prisma/prisma-products-repository'
-import { PrismaUsersRepository } from '@/repositories/prisma/prisma-users-repository'
-import { PrismaOrderItemsRepository } from '@/repositories/prisma/prisma-order-items-repository'
-import { PrismaCashbacksRepository } from '@/repositories/prisma/prisma-cashbacks-repository'
 import { PrismaUserLocationsRepository } from '@/repositories/prisma/prisma-user-locations-repository'
+import { PrismaProductsRepository } from '@/repositories/prisma/prisma-products-repository'
+import { PrismaCashbacksRepository } from '@/repositories/prisma/prisma-cashbacks-repository'
+import { OrderUseCase } from '@/use-cases/orders/create-order'
 
 export function makeOrderUseCase() {
-  const usersRepository = new PrismaUsersRepository()
-  const productsRepository = new PrismaProductsRepository()
   const ordersRepository = new PrismaOrdersRepository()
-  const orderItemsRepository = new PrismaOrderItemsRepository()
-  const storesRepository = new PrismaStoresRepository()
-  const cashbacksRepository = new PrismaCashbacksRepository()
-  const userLocationsRepository = new PrismaUserLocationsRepository()
+  const userLocationRepository = new PrismaUserLocationsRepository()
+  const productsRepository = new PrismaProductsRepository()
+  const cashbacksRepository = new PrismaCashbacksRepository() // Novo repositório
 
   const useCase = new OrderUseCase(
     ordersRepository,
+    userLocationRepository,
     productsRepository,
-    orderItemsRepository,
-    storesRepository,
-    usersRepository,
-    cashbacksRepository,
-    userLocationsRepository,
+    cashbacksRepository, // Adicionado
   )
+
   return useCase
 }
