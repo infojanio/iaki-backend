@@ -8,11 +8,7 @@ export type OrderWithItemsAndProducts = Order & {
 }
 
 export interface OrdersRepository {
-  create(
-    data: Prisma.OrderUncheckedCreateInput & {
-      discount_applied?: number // Adicionado
-    },
-  ): Promise<Order & { discount_applied?: number }>
+  create(data: Prisma.OrderUncheckedCreateInput): Promise<Order>
 
   createOrderItems(
     orderId: string,
@@ -47,7 +43,7 @@ export interface OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashback_percentage: number
+          cashbackPercentage: number
         }
         quantity: number
       }>
@@ -73,7 +69,7 @@ export interface OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashback_percentage: number
+          cashbackPercentage: number
         }
         quantity: number
       }>
@@ -99,7 +95,7 @@ export interface OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashback_percentage: number
+          cashbackPercentage: number
         }
         quantity: number
       }>

@@ -48,7 +48,7 @@ export async function getOrderByUser(
       image: item.product.image ?? null,
       price: item.product.price,
       quantity: item.quantity,
-      cashback_percentage: item.product.cashback_percentage,
+      cashbackPercentage: item.product.cashbackPercentage,
     })),
   }))
 

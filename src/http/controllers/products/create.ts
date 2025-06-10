@@ -21,7 +21,7 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
       .number()
       .positive({ message: 'A quantidade deve ser maior que zero' }),
     image: z.string().nullable(),
-    cashback_percentage: z
+    cashbackPercentage: z
       .number()
       .positive({ message: 'O cashback deve ser maior que zero' }),
     status: z.boolean(),

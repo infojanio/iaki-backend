@@ -106,7 +106,7 @@ describe('Order Use Case', () => {
       image: 'foto.jpg',
       store_id: 'loja-01',
       subcategory_id: 'subcategory-01',
-      cashback_percentage: 15,
+      cashbackPercentage: 15,
       status: true,
       created_at: new Date(),
     })

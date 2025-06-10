@@ -10,7 +10,7 @@ interface UpdateProductUseCaseRequest {
   quantity?: number | { increment: number } | { decrement: number }
   image?: string
   status?: boolean
-  cashback_percentage?: number
+  cashbackPercentage?: number
   store_id?: string
   subcategory_id?: string
 }

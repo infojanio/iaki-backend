@@ -67,7 +67,7 @@ describe('Create Product (e2e)', () => {
         price: 250,
         quantity: 10,
         image: 'foto.jpg',
-        cashback_percentage: 15,
+        cashbackPercentage: 15,
         status: true,
         created_at: new Date(),
       })

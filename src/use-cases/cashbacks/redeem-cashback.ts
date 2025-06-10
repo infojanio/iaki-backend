@@ -1,56 +1,35 @@
 import { CashbacksRepository } from '@/repositories/prisma/Iprisma/cashbacks-repository'
-import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
+import { ProductsRepository } from '@/repositories/prisma/Iprisma/products-repository'
 
 interface RedeemCashbackUseCaseRequest {
   user_id: string
-  order_id: string // Agora recebe o ID do pedido em vez do produto
+  product_id: string
   amount: number
 }
 
 export class RedeemCashbackUseCase {
   constructor(
     private cashbacksRepository: CashbacksRepository,
-    private ordersRepository: OrdersRepository, // Troca ProductsRepository por OrdersRepository
+    private productsRepository: ProductsRepository,
   ) {}
 
-  async execute({ user_id, order_id, amount }: RedeemCashbackUseCaseRequest) {
-    // Validação básica do amount
-    if (amount <= 0) {
-      throw new Error('O valor deve ser positivo.')
-    }
-
-    // Verifica saldo disponível
+  async execute({ user_id, product_id, amount }: RedeemCashbackUseCaseRequest) {
     const balance = await this.cashbacksRepository.getBalance(user_id)
+
     if (balance < amount) {
-      throw new Error('Saldo de cashback insuficiente.')
+      throw new Error('Insufficient cashback balance.')
     }
 
-    // Busca o pedido em vez do produto
-    const order = await this.ordersRepository.findById(order_id)
-    if (!order) {
-      throw new Error('Pedido não encontrado.')
+    const product = await this.productsRepository.findProductById(product_id)
+
+    if (!product) {
+      throw new Error('Product not found.')
     }
 
-    // Verifica se o valor do cashback não excede o total do pedido
-    if (amount > order.totalAmount.toNumber()) {
-      throw new Error('O valor do cashback excede o total do pedido.')
-    }
-
-    // Cria a transação de uso do cashback
-    await this.cashbacksRepository.createTransaction({
-      userId: user_id,
-      amount,
-      type: 'USE',
-    })
-
-    // Registra o débito no cashback vinculado ao pedido
-    await this.cashbacksRepository.redeemCashback({
+    await this.cashbacksRepository.applyCashback(
+      null, // Não é vinculado a um pedido específico
       user_id,
-      order_id, // Vincula ao pedido que recebeu o desconto
-      amount: -amount, // Valor negativo para débito
-    })
-
-    // Atualiza o pedido com o desconto aplicado (opcional)
-    await this.ordersRepository.applyDiscount(order_id, amount)
+      -amount,
+    )
   }
 }

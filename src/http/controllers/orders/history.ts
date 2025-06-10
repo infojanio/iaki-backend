@@ -34,7 +34,7 @@ export async function history(request: FastifyRequest, reply: FastifyReply) {
       image: item.product.image ?? null, // Garantindo que `image` seja string | null
       price: item.product.price,
       quantity: item.quantity,
-      cashback_percentage: item.product.cashback_percentage,
+      cashbackPercentage: item.product.cashbackPercentage,
     })),
   }))
 

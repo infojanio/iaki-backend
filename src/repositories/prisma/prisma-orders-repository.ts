@@ -19,7 +19,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
             include: {
               product: {
                 select: {
-                  cashback_percentage: true,
+                  cashbackPercentage: true,
                 },
               },
             },
@@ -109,7 +109,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
           name: item.product.name,
           image: item.product.image ?? null,
           price: new Decimal(item.product.price).toNumber(),
-          cashback_percentage: item.product.cashback_percentage,
+          cashbackPercentage: item.product.cashbackPercentage,
         },
         quantity: new Decimal(item.quantity).toNumber(), // Convertendo para number
       })),
@@ -151,7 +151,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
           name: item.product.name,
           image: item.product.image ?? null,
           price: new Decimal(item.product.price).toNumber(),
-          cashback_percentage: item.product.cashback_percentage,
+          cashbackPercentage: item.product.cashbackPercentage,
         },
         quantity: new Decimal(item.quantity).toNumber(),
       })),
@@ -193,7 +193,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
           name: item.product.name,
           image: item.product.image ?? null,
           price: new Decimal(item.product.price).toNumber(),
-          cashback_percentage: item.product.cashback_percentage,
+          cashbackPercentage: item.product.cashbackPercentage,
         },
         quantity: new Decimal(item.quantity).toNumber(),
       })),
@@ -201,29 +201,16 @@ export class PrismaOrdersRepository implements OrdersRepository {
   }
 
   async create(data: Prisma.OrderUncheckedCreateInput) {
-    const order = await prisma.order.create({
-      data: {
-        ...data,
-        // Garante que discountApplied seja salvo
-        discountApplied: data.discountApplied ?? 0,
-      },
-    })
+    const order = await prisma.order.create({ data })
 
     const qrCodeUrl = await QRCode.toDataURL(order.id)
 
-    const updatedOrder = await prisma.order.update({
+    await prisma.order.update({
       where: { id: order.id },
       data: { qrCodeUrl },
-      include: {
-        orderItems: true,
-      },
     })
 
-    return {
-      ...updatedOrder,
-      // Garante que o valor seja retornado mesmo se for zero
-      discountApplied: updatedOrder.discountApplied ?? 0,
-    }
+    return { ...order, qrCodeUrl }
   }
 
   async createOrderItems(
@@ -290,7 +277,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
         id: string
         name: string
         price: number | Decimal
-        cashback_percentage: number
+        cashbackPercentage: number
         image: string | null
         store: {
           id: string

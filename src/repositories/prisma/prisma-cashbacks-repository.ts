@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { CashbacksRepository } from './Iprisma/cashbacks-repository'
-import { Cashback, Prisma } from '@prisma/client'
+import { Cashback, CashbackTransaction, Prisma } from '@prisma/client'
 
 export class PrismaCashbacksRepository implements CashbacksRepository {
   // Retorna o total de cashback recebido pelo usuário
@@ -97,47 +97,39 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
   }
 
   async createTransaction({
-    user_id,
+    userId,
     amount,
     type,
   }: {
-    user_id: string
+    userId: string
     amount: number
     type: 'RECEIVE' | 'USE'
-  }) {
-    return await prisma.cashbackTransaction.create({
-      data: {
-        user_id,
-        amount,
-        type,
-      },
-    })
+  }): Promise<CashbackTransaction> {
+    console.log(
+      `[Repository] Criando transação - User: ${userId}, Amount: ${amount}, Type: ${type}`,
+    )
+
+    try {
+      const transaction = await prisma.cashbackTransaction.create({
+        data: {
+          user_id: userId,
+          amount: new Prisma.Decimal(amount),
+          type,
+        },
+      })
+
+      console.log(`[Repository] Transação criada com ID: ${transaction.id}`)
+      return transaction
+    } catch (error) {
+      console.error('[Repository] Erro ao criar transação:', error)
+      throw error
+    }
   }
 
   async getBalance(user_id: string): Promise<number> {
     const total = await this.totalCashbackByUserId(user_id)
     const used = await this.totalUsedCashbackByUserId(user_id)
     return total - used
-  }
-
-  async redeemCashback({
-    user_id,
-    order_id,
-    amount,
-  }: {
-    user_id: string
-    order_id: string
-    amount: number
-  }) {
-    return await prisma.cashback.create({
-      data: {
-        user_id,
-        order_id,
-        amount,
-        validated: true,
-        credited_at: new Date(),
-      },
-    })
   }
 
   // ✅ Aplica cashback ao pedido

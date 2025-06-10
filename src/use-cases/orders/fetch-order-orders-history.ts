@@ -22,7 +22,7 @@ interface FetchOrderOrdersHistoryUseCaseResponse {
         name: string
         image?: string | null
         price: number
-        cashback_percentage: number
+        cashbackPercentage: number
       } | null
       quantity: number
     }>
@@ -61,7 +61,7 @@ export class FetchOrderOrdersHistoryUseCase {
                 name: item.product.name,
                 image: item.product.image ?? null,
                 price: item.product.price,
-                cashback_percentage: item.product.cashback_percentage,
+                cashbackPercentage: item.product.cashbackPercentage,
               }
             : null,
           quantity: item.quantity,

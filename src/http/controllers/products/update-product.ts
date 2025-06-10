@@ -14,7 +14,7 @@ const updateProductBodySchema = z.object({
   quantity: z.number().nonnegative().optional(),
   image: z.string().optional(),
   status: z.boolean().optional(),
-  cashback_percentage: z.number().min(0).max(100).optional(),
+  cashbackPercentage: z.number().min(0).max(100).optional(),
   subcategory_id: z.string().uuid().optional(),
 })
 

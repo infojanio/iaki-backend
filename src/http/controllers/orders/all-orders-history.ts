@@ -41,7 +41,7 @@ export async function allOrdersHistory(
               name: item.product.name,
               image: item.product.image,
               price: item.product.price,
-              cashback_percentage: item.product.cashback_percentage,
+              cashbackPercentage: item.product.cashbackPercentage,
             }
           : null,
         quantity: item.quantity,

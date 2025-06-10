@@ -136,7 +136,7 @@ export class PrismaProductsRepository implements ProductsRepository {
         status: true, // Mostra apenas produtos ativos
       },
       orderBy: {
-        cashback_percentage: 'desc', // Ordena pelo maior cashback primeiro
+        cashbackPercentage: 'desc', // Ordena pelo maior cashback primeiro
       },
       take: 4, // Limita a 4 produtos
     })
@@ -204,7 +204,7 @@ export class PrismaProductsRepository implements ProductsRepository {
         | { set: number }
       image?: string
       status?: boolean
-      cashback_percentage?: number
+      cashbackPercentage?: number
       store_id?: string
       subcategory_id?: string
     },

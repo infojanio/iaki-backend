@@ -23,7 +23,7 @@ interface FetchUserOrdersHistoryUseCaseResponse {
         name: string
         image: string | null
         price: number
-        cashback_percentage: number
+        cashbackPercentage: number
       }
       quantity: number
     }>

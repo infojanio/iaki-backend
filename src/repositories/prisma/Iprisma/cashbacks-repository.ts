@@ -1,4 +1,6 @@
-import { Cashback, CashbackTransaction } from '@prisma/client'
+import { validateCashback } from '@/http/controllers/cashbacks/validate-cashback'
+import { Cashback, CashbackTransaction, Prisma } from '@prisma/client'
+import { string, number } from 'zod'
 
 export interface CashbacksRepository {
   totalCashbackByUserId(user_id: string): Promise<number>
@@ -13,14 +15,8 @@ export interface CashbacksRepository {
     amount: number
   }): Promise<Cashback>
 
-  redeemCashback(data: {
-    user_id: string
-    order_id: string
-    amount: number
-  }): Promise<Cashback>
-
   createTransaction(data: {
-    user_id: string
+    userId: string
     amount: number
     type: 'RECEIVE' | 'USE'
   }): Promise<CashbackTransaction>

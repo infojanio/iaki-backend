@@ -56,21 +56,21 @@ model UserLocation {
 }
 
 model Product {
-  id                  String      @id @default(uuid())
-  name                String
-  description         String?
-  price               Decimal
-  quantity            Decimal
-  image               String?
-  status              Boolean     @default(false)
-  cashback_percentage Float       @default(0.0)
-  store_id            String      @map("store_id")
-  store               Store       @relation(fields: [store_id], references: [id])
-  subcategory_id      String      @map("subcategory_id")
-  subcategory         SubCategory @relation(fields: [subcategory_id], references: [id])
-  orderItems          OrderItem[]
-  cartItems           CartItem[]
-  created_at          DateTime    @default(now()) @map("created_at")
+  id                 String      @id @default(uuid())
+  name               String
+  description        String?
+  price              Decimal
+  quantity           Decimal
+  image              String?
+  status             Boolean     @default(false)
+  cashbackPercentage Float       @map("chashback_percentage")
+  store_id           String      @map("store_id")
+  store              Store       @relation(fields: [store_id], references: [id])
+  subcategory_id     String      @map("subcategory_id")
+  subcategory        SubCategory @relation(fields: [subcategory_id], references: [id])
+  orderItems         OrderItem[]
+  cartItems          CartItem[]
+  created_at         DateTime    @default(now()) @map("created_at")
 
   @@map("products")
 }
@@ -99,20 +99,18 @@ model CartItem {
 }
 
 model Order {
-  id                  String                @id @default(uuid())
-  user_id             String                @map("user_id")
-  user                User                  @relation(fields: [user_id], references: [id])
-  store_id            String                @map("store_id")
-  store               Store                 @relation(fields: [store_id], references: [id])
-  totalAmount         Decimal               @map("total_amount")
-  discountApplied     Decimal               @default(0) @map("discount_applied")
-  validated_at        DateTime?             @map("validated_at")
-  qrCodeUrl           String? // Novo campo para armazenar o QR Code do pedido
-  status              OrderStatus           @default(PENDING)
-  orderItems          OrderItem[]
-  created_at          DateTime              @default(now()) @map("created_at")
-  CashbackTransaction CashbackTransaction[]
-  Cashback            Cashback[]
+  id           String      @id @default(uuid())
+  user_id      String      @map("user_id")
+  user         User        @relation(fields: [user_id], references: [id])
+  store_id     String      @map("store_id")
+  store        Store       @relation(fields: [store_id], references: [id])
+  totalAmount  Decimal     @map("total_amount")
+  validated_at DateTime?   @map("validated_at")
+  qrCodeUrl    String? // Novo campo para armazenar o QR Code do pedido
+  status       OrderStatus @default(PENDING)
+  orderItems   OrderItem[]
+  created_at   DateTime    @default(now()) @map("created_at")
+  Cashback     Cashback[]
 
   @@map("orders")
 }
@@ -150,8 +148,6 @@ model CashbackTransaction {
   amount     Decimal
   type       CashbackTransactionType
   created_at DateTime                @default(now()) @map("created_at")
-  Order      Order?                  @relation(fields: [orderId], references: [id])
-  orderId    String?
 
   @@map("cashback_transactions")
 }
