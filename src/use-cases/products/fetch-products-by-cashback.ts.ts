@@ -1,7 +1,7 @@
 import { ProductsRepository } from '@/repositories/prisma/Iprisma/products-repository'
 import { Product, Prisma } from '@prisma/client'
 interface FetchProductCashbackUseCaseRequest {
-  cashbackPercentage: number
+  cashback_percentage: number
 }
 interface FetchProductCashbackUseCaseResponse {
   products: Product[]
@@ -9,12 +9,12 @@ interface FetchProductCashbackUseCaseResponse {
 export class FetchProductsByCashbackUseCase {
   constructor(private productsRepository: ProductsRepository) {}
   async execute({
-    cashbackPercentage,
+    cashback_percentage,
   }: FetchProductCashbackUseCaseRequest): Promise<
     FetchProductCashbackUseCaseResponse
   > {
     const products = await this.productsRepository.findByCashback(
-      cashbackPercentage,
+      cashback_percentage,
     )
     return {
       products,

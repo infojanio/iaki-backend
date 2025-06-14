@@ -21,7 +21,7 @@ describe('Delete Product Use Case', () => {
       quantity: 10,
       image: 'nike.png',
       status: true,
-      cashbackPercentage: 30,
+      cashback_percentage: 30,
       store_id: '1453sdf1555',
       subcategory_id: '122355113fd',
       created_at: new Date(),

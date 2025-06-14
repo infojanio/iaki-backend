@@ -1,0 +1,27 @@
+{
+  "prettier/prettier": [
+    "error",
+    {},
+
+    {
+      "trailingComma": "es5",
+      "bracketSpacing": true,
+      "printWidth": 80,
+      "arrowParens": "avoid",
+      "singleQuote": true,
+
+      "tabWidth": 2,
+      "semi": false,
+      "overrides": [
+        {
+          "files": ["*.ts", "*.tsx"],
+          "options": {
+            "parser": "typescript",
+            "singleQuote": true,
+            "parameterWidth": 1
+          }
+        }
+      ]
+    }
+  ]
+}

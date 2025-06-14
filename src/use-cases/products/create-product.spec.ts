@@ -47,7 +47,7 @@ describe('Create Product Use Case', () => {
       quantity: 10,
       image: 'nike.png',
       status: false,
-      cashbackPercentage: 30,
+      cashback_percentage: 30,
       store_id: 'loja-01', //f6d6a0a6-2f1c-486f-88ff-740469735337
       subcategory_id: 'subcategory-01', //f6d6a0a6-2f1c-486f-88ff-740469735338
     })

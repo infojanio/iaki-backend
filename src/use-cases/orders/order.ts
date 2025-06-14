@@ -97,7 +97,7 @@ export class OrderUseCase {
       throw new MaxNumberOfOrdersError()
     }
 
-    // Buscar produtos para obter cashbackPercentage
+    // Buscar produtos para obter cashback_percentage
     const productIds = items.map((item) => item.product_id)
     const products = await this.productsRepository.findByIds(productIds)
 
@@ -112,7 +112,7 @@ export class OrderUseCase {
 
       const itemPrice = new Decimal(product.price)
       const itemQuantity = new Decimal(item.quantity)
-      const itemCashback = new Decimal(product.cashbackPercentage || 0)
+      const itemCashback = new Decimal(product.cashback_percentage || 0)
 
       totalAmount = totalAmount.plus(itemPrice.times(itemQuantity))
       totalCashback = totalCashback.plus(

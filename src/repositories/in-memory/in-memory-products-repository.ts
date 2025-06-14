@@ -7,7 +7,7 @@ export class InMemoryProductsRepository implements ProductsRepository {
   findByQuantity(quantity: number): Promise<Product[]> {
     throw new Error('Method not implemented.')
   }
-  findByCashback(cashbackPercentage: number): Promise<Product[]> {
+  findByCashback(cashback_percentage: number): Promise<Product[]> {
     throw new Error('Method not implemented.')
   }
   listMany(): Promise<Product[]> {
@@ -42,7 +42,7 @@ export class InMemoryProductsRepository implements ProductsRepository {
       quantity: data.quantity || 0,
       status: data.status ?? false, // Garante que o status padrão seja false
       image: data.image || null,
-      cashbackPercentage: data.cashbackPercentage || 0,
+      cashback_percentage: data.cashback_percentage || 0,
       store_id: data.store_id,
       subcategory_id: data.subcategory_id,
       created_at: data.created_at ?? new Date(),
@@ -106,10 +106,10 @@ export class InMemoryProductsRepository implements ProductsRepository {
         data.status !== undefined
           ? (data.status as boolean)
           : existingProduct.status,
-      cashbackPercentage:
-        data.cashbackPercentage !== undefined
-          ? (data.cashbackPercentage as number)
-          : existingProduct.cashbackPercentage,
+      cashback_percentage:
+        data.cashback_percentage !== undefined
+          ? (data.cashback_percentage as number)
+          : existingProduct.cashback_percentage,
       store_id:
         data.store_id !== undefined
           ? (data.store_id as string)

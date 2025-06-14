@@ -22,7 +22,7 @@ describe('Update Product Use Case', () => {
       quantity: 10,
       image: 'nike.png',
       status: false,
-      cashbackPercentage: 30,
+      cashback_percentage: 30,
       store_id: '1453sdf1555',
       subcategory_id: '122355113fd',
       created_at: new Date(),
@@ -37,7 +37,7 @@ describe('Update Product Use Case', () => {
       quantity: 100,
       image: 'nike.png',
       status: true,
-      cashbackPercentage: 32,
+      cashback_percentage: 32,
       store_id: '1453sdf1555',
       subcategory_id: '122355113fd',
     })
@@ -47,7 +47,7 @@ describe('Update Product Use Case', () => {
     expect(updatedProduct.name).toBe('Tênis Atualizado')
     expect(updatedProduct.description).toBe('Nike, n.40')
     expect(updatedProduct.store_id).toBe('1453sdf1555')
-    expect(updatedProduct.cashbackPercentage).toBe(32)
+    expect(updatedProduct.cashback_percentage).toBe(32)
     expect(updatedProduct.price).toBe(220)
     expect(updatedProduct.quantity).toBe(100)
   })

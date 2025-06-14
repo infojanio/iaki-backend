@@ -34,9 +34,9 @@ export class ValidateOrderAndCreditCashbackUseCase {
     const cashbackAmount = order.orderItems.reduce((acc, item) => {
       try {
         console.log(
-          `[UseCase] Processando item: ${item.id}, Subtotal: ${item.subtotal}, % Cashback: ${item.product.cashbackPercentage}`,
+          `[UseCase] Processando item: ${item.id}, Subtotal: ${item.subtotal}, % Cashback: ${item.product.cashback_percentage}`,
         )
-        const percentage = item.product.cashbackPercentage / 100
+        const percentage = item.product.cashback_percentage / 100
         const itemTotal = item.subtotal || new Decimal(0)
         const itemCashback = itemTotal.toNumber() * percentage
         console.log(`[UseCase] Cashback do item: ${itemCashback}`)
@@ -63,7 +63,7 @@ export class ValidateOrderAndCreditCashbackUseCase {
 
     console.log(`[UseCase] Criando transação de cashback: ${cashbackAmount}`)
     await this.cashbackRepository.createTransaction({
-      userId: order.user_id,
+      user_id: order.user_id,
       amount: cashbackAmount,
       type: 'RECEIVE',
     })

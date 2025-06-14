@@ -10,7 +10,7 @@ interface CreateProductUseCaseRequest {
   price: number
   quantity: number
   image?: string | null
-  cashbackPercentage: number
+  cashback_percentage: number
   status: boolean
   store_id: string
   subcategory_id: string
@@ -34,7 +34,7 @@ export class CreateProductUseCase {
     price,
     quantity,
     image,
-    cashbackPercentage,
+    cashback_percentage,
     status,
     store_id,
     subcategory_id,
@@ -65,7 +65,7 @@ export class CreateProductUseCase {
       price,
       quantity,
       image,
-      cashbackPercentage,
+      cashback_percentage,
       status,
       store_id,
       subcategory_id,

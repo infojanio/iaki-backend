@@ -4,6 +4,8 @@
   "description": "IAki style app.",
   "main": "index.js",
   "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint . --fix",
     "start:dev": "tsx watch src/server.ts",
     "start": "node build/server.js",
     "test:create-prisma-environment": "npm link ./prisma/vitest-environment-prisma",

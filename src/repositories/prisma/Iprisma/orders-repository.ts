@@ -8,7 +8,26 @@ export type OrderWithItemsAndProducts = Order & {
 }
 
 export interface OrdersRepository {
-  create(data: Prisma.OrderUncheckedCreateInput): Promise<Order>
+  create(
+    data: Prisma.OrderUncheckedCreateInput,
+  ): Promise<{
+    id: string
+    user_id: string
+    store_id: string
+    totalAmount: Decimal
+    discountApplied: Decimal
+    validated_at: Date | null
+    qrCodeUrl: string | null
+    status: OrderStatus
+    created_at: Date
+    orderItems: Array<{
+      id: string
+      product_id: string
+      quantity: Decimal // Alterado para Decimal
+      subtotal: Decimal // Alterado para Decimal
+      order_id?: string // Adicionado para compatibilidade
+    }>
+  }>
 
   createOrderItems(
     orderId: string,
@@ -35,6 +54,7 @@ export interface OrdersRepository {
       totalAmount: number
       qrCodeUrl?: string | null // Permitir null
       status: string
+      discountApplied: number | null
       validated_at: Date | null
       created_at: Date
       items: Array<{
@@ -43,7 +63,7 @@ export interface OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashbackPercentage: number
+          cashback_percentage: number
         }
         quantity: number
       }>
@@ -61,6 +81,7 @@ export interface OrdersRepository {
       totalAmount: number
       qrCodeUrl?: string | null // Permitir null
       status: string
+      discountApplied: number | null
       validated_at: Date | null
       created_at: Date
       items: Array<{
@@ -69,7 +90,7 @@ export interface OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashbackPercentage: number
+          cashback_percentage: number
         }
         quantity: number
       }>
@@ -87,6 +108,7 @@ export interface OrdersRepository {
       totalAmount: number
       qrCodeUrl?: string | null // Permitir null
       status: string
+      discountApplied: number | null
       validated_at: Date | null
       created_at: Date
       items: Array<{
@@ -95,7 +117,7 @@ export interface OrdersRepository {
           name: string
           image: string | null
           price: number
-          cashbackPercentage: number
+          cashback_percentage: number
         }
         quantity: number
       }>
