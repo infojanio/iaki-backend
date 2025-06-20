@@ -1,107 +1,75 @@
-import { prisma } from '@/lib/prisma'
-import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { Order, OrderItem, OrderStatus, Prisma } from '@prisma/client'
-import { Decimal } from '@prisma/client/runtime/library'
-import dayjs from 'dayjs'
-import QRCode from 'qrcode'
+import { prisma } from "@/lib/prisma";
+import { OrdersRepository } from "@/repositories/prisma/Iprisma/orders-repository";
+import { Order, OrderItem, OrderStatus, Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
+import dayjs from "dayjs";
+import QRCode from "qrcode";
+
+type CreatedOrderWithItems = Order & {
+  orderItems: {
+    id: string;
+    product_id: string;
+    quantity: Decimal;
+    subtotal: Decimal;
+    order_id: string;
+  }[];
+};
 
 export class PrismaOrdersRepository implements OrdersRepository {
-  prisma: any
-
   async findById(orderId: string) {
-    console.log(`[Repository] Buscando pedido com ID: ${orderId}`)
-
     try {
       const order = await prisma.order.findUnique({
         where: { id: orderId },
         include: {
           orderItems: {
-            include: {
-              product: {
-                select: {
-                  cashback_percentage: true,
-                },
-              },
-            },
+            include: { product: true },
           },
-          user: {
-            select: {
-              id: true,
-            },
-          },
+          user: { select: { id: true } },
         },
-      })
-
-      if (!order) {
-        console.log(`[Repository] Pedido não encontrado: ${orderId}`)
-        return null
-      }
-
-      console.log(`[Repository] Pedido encontrado:`, {
-        id: order.id,
-        status: order.status,
-        itemsCount: order.orderItems.length,
-      })
-
-      return order
+      });
+      return order ?? null;
     } catch (error) {
-      console.error(`[Repository] Erro ao buscar pedido ${orderId}:`, error)
-      throw error
+      console.error(`[Repository] Erro ao buscar pedido ${orderId}:`, error);
+      throw error;
     }
   }
 
-  async updateStatus(
-    order_id: string,
-    status: OrderStatus,
-  ): Promise<Order | null> {
+  async updateStatus(order_id: string, status: OrderStatus) {
     return prisma.order.update({
       where: { id: order_id },
       data: { status },
-    })
+    });
   }
 
-  async findByUserIdLastHour(
-    userId: string,
-    date: Date,
-  ): Promise<Order | boolean | null> {
-    const oneHourAgo = dayjs(date).subtract(1, 'hour').toDate()
-    return await prisma.order.findFirst({
+  async findByUserIdLastHour(userId: string, date: Date) {
+    const oneHourAgo = dayjs(date).subtract(1, "hour").toDate();
+    return prisma.order.findFirst({
       where: { user_id: userId, created_at: { gte: oneHourAgo } },
-    })
+    });
   }
 
   async findManyByUserIdWithItems(
     userId: string,
     page: number,
-    status?: OrderStatus,
+    status?: OrderStatus
   ) {
     const orders = await prisma.order.findMany({
-      where: {
-        user_id: userId,
-        status: status || undefined,
-      },
+      where: { user_id: userId, status: status || undefined },
       include: {
-        orderItems: {
-          include: {
-            product: true, // Inclui os detalhes do produto
-          },
-        },
+        orderItems: { include: { product: true } },
       },
       skip: (page - 1) * 10,
       take: 20,
-      orderBy: {
-        created_at: 'desc',
-      },
-    })
+      orderBy: { created_at: "desc" },
+    });
 
-    // Normalizando os dados retornados
     return orders.map((order) => ({
       id: order.id,
       store_id: order.store_id,
       totalAmount: new Decimal(order.totalAmount).toNumber(),
       discountApplied: new Decimal(order.discountApplied).toNumber(),
-      qrCodeUrl: order.qrCodeUrl ?? undefined, // Convertendo null para undefined
-      status: order.status as string,
+      qrCodeUrl: order.qrCodeUrl ?? undefined,
+      status: order.status,
       validated_at: order.validated_at,
       created_at: order.created_at,
       items: order.orderItems.map((item) => ({
@@ -112,30 +80,22 @@ export class PrismaOrdersRepository implements OrdersRepository {
           price: new Decimal(item.product.price).toNumber(),
           cashback_percentage: item.product.cashback_percentage,
         },
-        quantity: new Decimal(item.quantity).toNumber(), // Convertendo para number
+        quantity: new Decimal(item.quantity).toNumber(),
+        subtotal: new Decimal(item.subtotal).toNumber(),
       })),
-    }))
+    }));
   }
 
   async findManyWithItems(page: number, status: OrderStatus, storeId?: string) {
     const orders = await prisma.order.findMany({
-      where: {
-        status: status || undefined,
-        store_id: storeId || undefined,
-      },
+      where: { status: status || undefined, store_id: storeId || undefined },
       include: {
-        orderItems: {
-          include: {
-            product: true,
-          },
-        },
+        orderItems: { include: { product: true } },
       },
       skip: (page - 1) * 10,
       take: 50,
-      orderBy: {
-        created_at: 'desc',
-      },
-    })
+      orderBy: { created_at: "desc" },
+    });
 
     return orders.map((order) => ({
       id: order.id,
@@ -144,7 +104,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
       totalAmount: new Decimal(order.totalAmount).toNumber(),
       discountApplied: new Decimal(order.discountApplied).toNumber(),
       qrCodeUrl: order.qrCodeUrl ?? undefined,
-      status: order.status as string,
+      status: order.status,
       validated_at: order.validated_at,
       created_at: order.created_at,
       items: order.orderItems.map((item) => ({
@@ -156,30 +116,27 @@ export class PrismaOrdersRepository implements OrdersRepository {
           cashback_percentage: item.product.cashback_percentage,
         },
         quantity: new Decimal(item.quantity).toNumber(),
+        subtotal: new Decimal(item.subtotal).toNumber(),
       })),
-    }))
+    }));
   }
 
   async findManyByOrderIdWithItems(
     orderId: string,
     page: number,
-    status?: OrderStatus,
+    status?: OrderStatus
   ) {
     const orders = await prisma.order.findMany({
       where: {
-        id: { contains: orderId }, // Busca por parte do ID
+        id: { contains: orderId },
         status: status || undefined,
       },
       include: {
-        orderItems: {
-          include: {
-            product: true,
-          },
-        },
+        orderItems: { include: { product: true } },
       },
-      take: 1, // Retorna apenas o primeiro resultado
-      orderBy: { created_at: 'desc' },
-    })
+      take: 1,
+      orderBy: { created_at: "desc" },
+    });
 
     return orders.map((order) => ({
       id: order.id,
@@ -187,7 +144,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
       totalAmount: new Decimal(order.totalAmount).toNumber(),
       qrCodeUrl: order.qrCodeUrl ?? undefined,
       discountApplied: new Decimal(order.discountApplied).toNumber(),
-      status: order.status as string,
+      status: order.status,
       validated_at: order.validated_at,
       created_at: order.created_at,
       items: order.orderItems.map((item) => ({
@@ -199,12 +156,14 @@ export class PrismaOrdersRepository implements OrdersRepository {
           cashback_percentage: item.product.cashback_percentage,
         },
         quantity: new Decimal(item.quantity).toNumber(),
+        subtotal: new Decimal(item.subtotal).toNumber(),
       })),
-    }))
+    }));
   }
 
-  async create(data: Prisma.OrderUncheckedCreateInput) {
-    // 1. Criar o pedido no banco de dados
+  async create(
+    data: Prisma.OrderUncheckedCreateInput
+  ): Promise<CreatedOrderWithItems> {
     const order = await prisma.order.create({
       data: {
         ...data,
@@ -213,46 +172,40 @@ export class PrismaOrdersRepository implements OrdersRepository {
       include: {
         orderItems: true,
       },
-    })
+    });
 
-    // 2. Gerar QR Code (opcional)
-    const qrCodeUrl = await QRCode.toDataURL(order.id)
+    const qrCodeUrl = await QRCode.toDataURL(order.id);
 
-    // 3. Atualizar o pedido com o QR Code
     const updatedOrder = await prisma.order.update({
       where: { id: order.id },
       data: { qrCodeUrl },
       include: {
         orderItems: true,
       },
-    })
+    });
 
-    // 4. Retornar no formato esperado
     return {
-      id: updatedOrder.id,
-      user_id: updatedOrder.user_id,
-      store_id: updatedOrder.store_id,
-      totalAmount: updatedOrder.totalAmount,
-      discountApplied: updatedOrder.discountApplied,
-      validated_at: updatedOrder.validated_at,
-      qrCodeUrl: updatedOrder.qrCodeUrl,
-      status: updatedOrder.status,
-      created_at: updatedOrder.created_at,
+      ...updatedOrder,
       orderItems: updatedOrder.orderItems.map((item) => ({
         id: item.id,
         product_id: item.product_id,
-        quantity: item.quantity, // Mantém como Decimal
-        subtotal: item.subtotal, // Mantém como Decimal
-        order_id: item.order_id, // Adicionado para compatibilidade
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+        order_id: item.order_id,
       })),
-    }
+    };
   }
 
   async createOrderItems(
     order_id: string,
-    items: { product_id: string; quantity: number; subtotal: number }[],
+    items: { product_id: string; quantity: number; subtotal: number }[]
   ) {
-    if (items.length === 0) return
+    if (items.length === 0) {
+      console.warn(
+        `[Repository] Nenhum item enviado para criação em ${order_id}`
+      );
+      return;
+    }
 
     await prisma.orderItem.createMany({
       data: items.map((item) => ({
@@ -261,77 +214,64 @@ export class PrismaOrdersRepository implements OrdersRepository {
         quantity: item.quantity,
         subtotal: item.subtotal,
       })),
-    })
+    });
   }
 
   async save(order: Order): Promise<Order> {
     return await prisma.order.upsert({
       where: { id: order.id },
-      update: order,
-      create: order,
-    })
+      update: {
+        user_id: order.user_id,
+        store_id: order.store_id,
+        totalAmount: order.totalAmount,
+        discountApplied: order.discountApplied,
+        validated_at: order.validated_at,
+        qrCodeUrl: order.qrCodeUrl,
+        status: order.status,
+        created_at: order.created_at,
+      },
+      create: {
+        id: order.id,
+        user_id: order.user_id,
+        store_id: order.store_id,
+        totalAmount: order.totalAmount,
+        discountApplied: order.discountApplied,
+        validated_at: order.validated_at,
+        qrCodeUrl: order.qrCodeUrl,
+        status: order.status,
+        created_at: order.created_at,
+      },
+    });
   }
 
   async markAsValidated(order_id: string): Promise<void> {
     await prisma.order.update({
       where: { id: order_id },
       data: { validated_at: new Date() },
-    })
+    });
   }
 
   async validateOrder(orderId: string) {
-    const order = await prisma.order.findUnique({ where: { id: orderId } })
-    if (!order) throw new Error('Order not found.')
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new Error("Order not found.");
 
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        status: 'VALIDATED',
+        status: "VALIDATED",
         validated_at: new Date(),
       },
-    })
+    });
   }
 
-  async balanceByUserId(userId: string): Promise<number> {
-    const validatedCashbacks = await prisma.cashback.findMany({
-      where: { user_id: userId, order: { validated_at: { not: null } } },
-      select: { amount: true },
-    })
-
-    return validatedCashbacks.reduce(
-      (acc, cashback) => acc + new Prisma.Decimal(cashback.amount).toNumber(),
-      0,
-    )
-  }
-
-  async getItemsByOrderId(
-    orderId: string,
-  ): Promise<
-    (OrderItem & {
-      product: {
-        id: string
-        name: string
-        price: number | Decimal
-        cashback_percentage: number
-        image: string | null
-        store: {
-          id: string
-          name: string
-        }
-      }
-    })[]
-  > {
-    return await prisma.orderItem.findMany({
-      where: {
-        order_id: orderId,
-      },
+  async getItemsByOrderId(orderId: string) {
+    return prisma.orderItem.findMany({
+      where: { order_id: orderId },
       include: {
         product: {
-          include: {
-            store: true,
-          },
+          include: { store: true },
         },
       },
-    })
+    });
   }
 }

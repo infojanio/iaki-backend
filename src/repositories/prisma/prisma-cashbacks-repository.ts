@@ -1,62 +1,43 @@
-import { prisma } from '@/lib/prisma'
-import { CashbacksRepository } from './Iprisma/cashbacks-repository'
-import { Cashback, Prisma } from '@prisma/client'
+import { prisma } from "@/lib/prisma";
+import { CashbacksRepository } from "./Iprisma/cashbacks-repository";
+import { Cashback, Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export class PrismaCashbacksRepository implements CashbacksRepository {
-  // Retorna o total de cashback recebido pelo usuário
   async totalCashbackByUserId(user_id: string): Promise<number> {
     const result = await prisma.cashback.aggregate({
       _sum: { amount: true },
-      where: { user_id, amount: { gt: 0 } }, // Considera apenas valores positivos
-    })
-
-    return (result._sum.amount ?? new Prisma.Decimal(0)).toNumber()
+      where: { user_id, amount: { gt: 0 } },
+    });
+    return (result._sum.amount ?? new Decimal(0)).toNumber();
   }
 
-  // Retorna o total de cashback utilizado pelo usuário
   async totalUsedCashbackByUserId(user_id: string): Promise<number> {
     const result = await prisma.cashback.aggregate({
       _sum: { amount: true },
-      where: { user_id, amount: { lt: 0 } }, // Considera apenas valores negativos
-    })
-
-    return Math.abs((result._sum.amount ?? new Prisma.Decimal(0)).toNumber())
+      where: { user_id, amount: { lt: 0 } },
+    });
+    return Math.abs((result._sum.amount ?? new Decimal(0)).toNumber());
   }
 
-  // Retorna uma lista de cashbacks do usuário
   async findByUserId(user_id: string): Promise<Cashback[]> {
-    return await prisma.cashback.findMany({
+    return prisma.cashback.findMany({
       where: { user_id },
-      orderBy: { credited_at: 'desc' },
-    })
+      orderBy: { credited_at: "desc" },
+    });
   }
 
   async findById(cashbackId: string): Promise<Cashback | null> {
-    const cashback = await prisma.cashback.findUnique({
-      where: {
-        id: cashbackId,
-      },
-    })
-
-    if (!cashback) {
-      return null
-    }
-
-    return {
-      id: cashback.id,
-      order_id: cashback.order_id,
-      user_id: cashback.user_id,
-      amount: cashback.amount,
-      validated: cashback.validated,
-      credited_at: cashback.credited_at,
-    }
+    return prisma.cashback.findUnique({
+      where: { id: cashbackId },
+    });
   }
 
   async validateCashback(id: string) {
     await prisma.cashback.update({
       where: { id },
       data: { validated: true },
-    })
+    });
   }
 
   async createCashback({
@@ -64,19 +45,12 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     orderId,
     amount,
   }: {
-    userId: string
-    orderId: string
-    amount: number
+    userId: string;
+    orderId: string;
+    amount: number;
   }): Promise<Cashback> {
-    console.log(
-      `[Repository] Criando cashback - User: ${userId}, Order: ${orderId}, Amount: ${amount}`,
-    )
-
     try {
-      const decimalAmount = new Prisma.Decimal(amount)
-      console.log(
-        `[Repository] Valor convertido para Decimal: ${decimalAmount}`,
-      )
+      const decimalAmount = new Decimal(amount);
 
       const cashback = await prisma.cashback.create({
         data: {
@@ -86,13 +60,12 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
           validated: true,
           credited_at: new Date(),
         },
-      })
+      });
 
-      console.log(`[Repository] Cashback criado com ID: ${cashback.id}`)
-      return cashback
+      return cashback;
     } catch (error) {
-      console.error('[Repository] Erro ao criar cashback:', error)
-      throw error
+      console.error("[Repository] Erro ao criar cashback:", error);
+      throw error;
     }
   }
 
@@ -101,23 +74,30 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     amount,
     type,
   }: {
-    user_id: string
-    amount: number
-    type: 'RECEIVE' | 'USE'
+    user_id: string;
+    amount: number | Decimal;
+    type: "RECEIVE" | "USE";
   }) {
-    return await prisma.cashbackTransaction.create({
+    const value = new Decimal(amount);
+
+    const adjustedAmount = type === "USE" ? value.negated().abs() : value.abs(); // Sempre negativo se USE
+
+    return prisma.cashbackTransaction.create({
       data: {
         user_id,
-        amount,
+        amount: adjustedAmount,
         type,
       },
-    })
+    });
   }
 
   async getBalance(user_id: string): Promise<number> {
-    const total = await this.totalCashbackByUserId(user_id)
-    const used = await this.totalUsedCashbackByUserId(user_id)
-    return total - used
+    const transactions = await prisma.cashbackTransaction.findMany({
+      where: { user_id },
+      select: { amount: true },
+    });
+
+    return transactions.reduce((acc, tx) => acc + tx.amount.toNumber(), 0);
   }
 
   async redeemCashback({
@@ -125,34 +105,48 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     order_id,
     amount,
   }: {
-    user_id: string
-    order_id: string
-    amount: number
+    user_id: string;
+    order_id: string;
+    amount: number;
   }) {
-    return await prisma.cashback.create({
+    const usedAmount = -Math.abs(amount);
+
+    const cashback = await prisma.cashback.create({
       data: {
         user_id,
         order_id,
-        amount,
+        amount: usedAmount,
         validated: true,
         credited_at: new Date(),
       },
-    })
+    });
+
+    return cashback;
   }
 
-  // ✅ Aplica cashback ao pedido
   async applyCashback(
     order_id: string,
     user_id: string,
-    amount: number,
+    amount: number
   ): Promise<void> {
+    const decimalAmount = new Decimal(amount);
+
     await prisma.cashback.create({
       data: {
         order_id,
-        user_id, // ✅ Corrigido
-        amount,
-        credited_at: new Date(), // ✅ Definindo data de crédito
+        user_id,
+        amount: decimalAmount,
+        credited_at: new Date(),
+        validated: true,
       },
-    })
+    });
+
+    await prisma.cashbackTransaction.create({
+      data: {
+        user_id,
+        amount: decimalAmount,
+        type: "RECEIVE",
+      },
+    });
   }
 }

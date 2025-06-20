@@ -1,8 +1,9 @@
-import { prisma } from '@/lib/prisma'
-import { Prisma, User } from '@prisma/client'
-import { UsersRepository } from './Iprisma/users-repository'
-import { ResourceNotFoundError } from '@/utils/messages/errors/resource-not-found-error'
-import { userInfo } from 'os'
+import { prisma } from "@/lib/prisma";
+import { Prisma, User } from "@prisma/client";
+import { UsersRepository } from "./Iprisma/users-repository";
+import { ResourceNotFoundError } from "@/utils/messages/errors/resource-not-found-error";
+import { userInfo } from "os";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export class PrismaUsersRepository implements UsersRepository {
   /**
@@ -23,9 +24,9 @@ export class PrismaUsersRepository implements UsersRepository {
       include: {
         address: true, // Retorna os endereços associados ao usuário
       },
-    })
+    });
 
-    return user
+    return user;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -33,10 +34,10 @@ export class PrismaUsersRepository implements UsersRepository {
       where: {
         id,
       },
-    })
-    console.log('🔍 Buscando usuário com ID:', user?.name)
+    });
+    console.log("🔍 Buscando usuário com ID:", user?.name);
 
-    return user
+    return user;
   }
 
   //verifica se o email já existe
@@ -45,21 +46,32 @@ export class PrismaUsersRepository implements UsersRepository {
       where: {
         email,
       },
-    })
-    return user
+    });
+    return user;
+  }
+
+  async balanceByUserId(userId: string): Promise<number> {
+    const validatedCashbacks = await prisma.cashback.findMany({
+      where: { user_id: userId, order: { validated_at: { not: null } } },
+      select: { amount: true },
+    });
+
+    return validatedCashbacks
+      .reduce((acc, cashback) => acc.plus(cashback.amount), new Decimal(0))
+      .toNumber();
   }
 
   async update(
     userId: string,
-    data: Prisma.UserUncheckedUpdateInput,
+    data: Prisma.UserUncheckedUpdateInput
   ): Promise<User> {
     try {
       return await prisma.user.update({
         where: { id: userId },
         data,
-      })
+      });
     } catch (error) {
-      throw new ResourceNotFoundError()
+      throw new ResourceNotFoundError();
     }
   }
 }
