@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "IAki style app.",
   "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --fix",
