@@ -51,6 +51,6 @@ export class RedeemCashbackUseCase {
     });
 
     // Atualiza o pedido com o desconto aplicado (opcional)
-    await this.ordersRepository.applyDiscount(order_id, amount);
+    await this.cashbacksRepository.applyCashback(order_id, user_id, amount);
   }
 }

@@ -1,35 +1,37 @@
 // src/use-cases/fetch-all-orders-history-use-case.ts
 
-import { OrdersRepository } from '@/repositories/prisma/Iprisma/orders-repository'
-import { OrderStatus } from '@prisma/client'
+import { OrdersRepository } from "@/repositories/prisma/Iprisma/orders-repository";
+import { OrderStatus } from "@prisma/client";
 
 interface FetchAllOrdersHistoryUseCaseRequest {
-  page: number
-  status?: OrderStatus
-  storeId?: string
+  page: number;
+  status?: OrderStatus;
+  storeId?: string;
 }
 
 interface FetchAllOrdersHistoryUseCaseResponse {
   orders: Array<{
-    id: string
-    user_id: string
-    store_id: string
-    totalAmount: number
-    qrCodeUrl?: string
-    status: string
-    validated_at: Date | null
-    created_at: Date
+    id: string;
+    user_id: string;
+    user_name: string;
+    store_id: string;
+    totalAmount: number;
+    discountApplied: number;
+    qrCodeUrl?: string;
+    status: string;
+    validated_at: Date | null;
+    created_at: Date;
     items: Array<{
       product: {
-        id: string
-        name: string
-        image?: string | null
-        price: number
-        cashback_percentage: number
-      } | null
-      quantity: number
-    }>
-  }>
+        id: string;
+        name: string;
+        image?: string | null;
+        price: number;
+        cashback_percentage: number;
+      } | null;
+      quantity: number;
+    }>;
+  }>;
 }
 
 export class FetchAllOrdersHistoryUseCase {
@@ -45,16 +47,18 @@ export class FetchAllOrdersHistoryUseCase {
     const orders = await this.ordersRepository.findManyWithItems(
       page,
       status,
-      storeId,
-    )
-    console.log('Total de pedidos:', orders.length)
+      storeId
+    );
+    // console.log("Total de pedidos:", orders.length);
 
     return {
       orders: orders.map((order) => ({
         id: order.id,
         user_id: order.user_id,
+        user_name: order.user_name,
         store_id: order.store_id,
         totalAmount: order.totalAmount,
+        discountApplied: order.discountApplied || 0,
         qrCodeUrl: order.qrCodeUrl ?? undefined,
         status: order.status,
         validated_at: order.validated_at,
@@ -72,6 +76,6 @@ export class FetchAllOrdersHistoryUseCase {
           quantity: item.quantity,
         })),
       })),
-    }
+    };
   }
 }

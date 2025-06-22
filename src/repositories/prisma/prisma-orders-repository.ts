@@ -88,9 +88,13 @@ export class PrismaOrdersRepository implements OrdersRepository {
 
   async findManyWithItems(page: number, status: OrderStatus, storeId?: string) {
     const orders = await prisma.order.findMany({
-      where: { status: status || undefined, store_id: storeId || undefined },
+      where: {
+        status: status || undefined,
+        store_id: storeId || undefined,
+      },
       include: {
         orderItems: { include: { product: true } },
+        user: { select: { name: true } }, // <-- incluído aqui
       },
       skip: (page - 1) * 10,
       take: 50,
@@ -100,6 +104,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
     return orders.map((order) => ({
       id: order.id,
       user_id: order.user_id,
+      user_name: order.user?.name ?? "Usuário", // <-- adicionado
       store_id: order.store_id,
       totalAmount: new Decimal(order.totalAmount).toNumber(),
       discountApplied: new Decimal(order.discountApplied).toNumber(),

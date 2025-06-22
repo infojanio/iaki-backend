@@ -9,7 +9,7 @@ interface CreateOrderUseCaseRequest {
   store_id: string;
   latitude?: number;
   longitude?: number;
-  discount_applied?: number;
+  discountApplied?: number;
   total_amount?: number | Decimal;
   useCashback?: boolean;
   items: {
@@ -23,7 +23,7 @@ interface CreateOrderUseCaseResponse {
   id: string;
   qrCodeUrl: string | null;
   total_amount: Decimal | number;
-  discount_applied: Decimal | number;
+  discountApplied: Decimal | number;
   status: string;
 }
 
@@ -52,7 +52,7 @@ export class OrderUseCase {
     latitude,
     longitude,
     items,
-    discount_applied = 0,
+    discountApplied = 0,
     total_amount: expectedTotal,
     useCashback = false,
   }: CreateOrderUseCaseRequest): Promise<CreateOrderUseCaseResponse> {
@@ -83,7 +83,7 @@ export class OrderUseCase {
       });
     }
 
-    const effectiveDiscount = Math.min(discount_applied, subtotal);
+    const effectiveDiscount = Math.min(discountApplied, subtotal);
     const calculatedTotal = subtotal - effectiveDiscount;
 
     if (
@@ -149,7 +149,7 @@ export class OrderUseCase {
         id: order.id,
         qrCodeUrl: null,
         total_amount: calculatedTotal,
-        discount_applied: effectiveDiscount,
+        discountApplied: effectiveDiscount,
         status: order.status,
       };
     } catch (error) {

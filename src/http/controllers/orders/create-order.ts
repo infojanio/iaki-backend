@@ -15,7 +15,7 @@ export async function createOrder(
     store_id: z.string().uuid({ message: "ID da loja inválido" }),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    discount_applied: z.number().min(0).optional(),
+    discountApplied: z.number().min(0).optional(),
     useCashback: z.boolean().optional().default(false),
     items: z
       .array(
@@ -33,10 +33,10 @@ export async function createOrder(
   try {
     const validatedData = createOrderBodySchema.parse(request.body);
 
-    const discount_applied = validatedData.discount_applied ?? 0;
+    const discountApplied = validatedData.discountApplied ?? 0;
 
     // Validar saldo de cashback se necessário
-    if (validatedData.useCashback && discount_applied > 0) {
+    if (validatedData.useCashback && discountApplied > 0) {
       const validatedCashbacks = await prisma.cashback.findMany({
         where: {
           user_id: validatedData.user_id,
@@ -50,7 +50,7 @@ export async function createOrder(
         0
       );
 
-      if (new Decimal(cashbackBalance).lessThan(discount_applied)) {
+      if (new Decimal(cashbackBalance).lessThan(discountApplied)) {
         return reply.status(400).send({
           message: "Saldo de cashback insuficiente para aplicar o desconto",
         });
@@ -64,7 +64,7 @@ export async function createOrder(
       store_id: validatedData.store_id,
       latitude: validatedData.latitude,
       longitude: validatedData.longitude,
-      discount_applied,
+      discountApplied: validatedData.discountApplied,
       useCashback: validatedData.useCashback,
       items: validatedData.items.map(({ product_id, quantity }) => ({
         product_id,
@@ -81,7 +81,7 @@ export async function createOrder(
         id: order.id,
         status: order.status,
         totalAmount: order.total_amount,
-        discountApplied: order.discount_applied,
+        discountApplied: order.discountApplied,
         qrCodeUrl: order.qrCodeUrl,
       },
     });

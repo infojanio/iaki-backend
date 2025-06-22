@@ -51,6 +51,7 @@ export interface OrdersRepository {
       id: string;
       store_id: string;
       user_id: string;
+      user_name: string;
       totalAmount: number;
       qrCodeUrl?: string | null; // Permitir null
       status: string;
