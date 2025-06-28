@@ -44,12 +44,6 @@ export class ValidateOrderAndCreditCashbackUseCase {
         amount: discount.toNumber(),
       });
 
-      await this.cashbackRepository.createTransaction({
-        user_id: order.user_id,
-        amount: discount.toNumber(),
-        type: "USE",
-      });
-
       console.log(`[UseCase] Cashback debitado com sucesso.`);
       return {
         cashback: null,

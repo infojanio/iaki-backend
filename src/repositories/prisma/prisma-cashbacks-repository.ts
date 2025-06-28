@@ -1,9 +1,27 @@
 import { prisma } from "@/lib/prisma";
 import { CashbacksRepository } from "./Iprisma/cashbacks-repository";
-import { Cashback, Prisma } from "@prisma/client";
+import { Cashback, CashbackTransaction, Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
 export class PrismaCashbacksRepository implements CashbacksRepository {
+  async getTransactionsByUserId(
+    userId: string
+  ): Promise<CashbackTransaction[]> {
+    const transactions = await prisma.cashbackTransaction.findMany({
+      where: { user_id: userId },
+      orderBy: { created_at: "desc" },
+    });
+
+    return transactions.map((tx) => ({
+      id: tx.id,
+      user_id: tx.user_id,
+      order_id: tx.order_id,
+      type: tx.type as "RECEIVE" | "USE",
+      amount: Number(tx.amount),
+      created_at: tx.created_at,
+    }));
+  }
+
   async totalCashbackByUserId(user_id: string): Promise<number> {
     const result = await prisma.cashback.aggregate({
       _sum: { amount: true },
@@ -97,7 +115,7 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
       select: { amount: true },
     });
 
-    return transactions.reduce((acc, tx) => acc + tx.amount.toNumber(), 0);
+    return transactions.reduce((acc, tx) => acc + tx.amount, 0);
   }
 
   async redeemCashback({
@@ -118,6 +136,14 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
         amount: usedAmount,
         validated: true,
         credited_at: new Date(),
+      },
+    });
+
+    await prisma.cashbackTransaction.create({
+      data: {
+        user_id,
+        amount: usedAmount,
+        type: "USE",
       },
     });
 

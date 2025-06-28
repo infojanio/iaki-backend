@@ -7,6 +7,7 @@ export interface CashbacksRepository {
   findByUserId(user_id: string): Promise<Cashback[]>;
   findById(cashbackId: string): Promise<Cashback | null>;
   getBalance(user_id: string): Promise<number>;
+  getTransactionsByUserId(userId: string): Promise<CashbackTransaction[]>;
 
   createCashback(data: {
     userId: string;
