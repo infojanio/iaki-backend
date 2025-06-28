@@ -98,6 +98,16 @@ export class OrderUseCase {
       this.validateDiscount(effectiveDiscount, subtotal, balance);
     }
 
+    const hasPendingOrder = await this.ordersRepository.existsPendingOrder(
+      user_id
+    );
+
+    if (useCashback && hasPendingOrder) {
+      throw new Error(
+        "Você já tem um pedido pendente. Aguarde a validação para usar seu cashback novamente."
+      );
+    }
+
     const order = await this.ordersRepository.create({
       user_id,
       store_id,

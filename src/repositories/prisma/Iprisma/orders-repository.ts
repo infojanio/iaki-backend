@@ -35,6 +35,7 @@ export interface OrdersRepository {
   ): Promise<void>;
 
   findById(orderId: string): Promise<OrderWithItemsAndProducts | null>;
+  existsPendingOrder(user_id: string): Promise<boolean>;
   validateOrder(orderId: string): Promise<void>;
   markAsValidated(order_id: string): Promise<void>;
   findByUserIdLastHour(

@@ -166,6 +166,17 @@ export class PrismaOrdersRepository implements OrdersRepository {
     }));
   }
 
+  async existsPendingOrder(user_id: string): Promise<boolean> {
+    const count = await prisma.order.count({
+      where: {
+        user_id,
+        status: "PENDING",
+      },
+    });
+
+    return count > 0;
+  }
+
   async create(
     data: Prisma.OrderUncheckedCreateInput
   ): Promise<CreatedOrderWithItems> {

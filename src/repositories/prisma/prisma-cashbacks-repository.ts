@@ -54,7 +54,7 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
   async validateCashback(id: string) {
     await prisma.cashback.update({
       where: { id },
-      data: { validated: true },
+      data: { validated: true, status: "CONFIRMED" },
     });
   }
 
@@ -135,6 +135,7 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
         order_id,
         amount: usedAmount,
         validated: true,
+        status: "CONFIRMED",
         credited_at: new Date(),
       },
     });
