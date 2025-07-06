@@ -1,21 +1,26 @@
-import { FastifyRequest, FastifyReply } from 'fastify'
-import { z } from 'zod'
-import { makeSearchProductsUseCase } from '@/use-cases/_factories/make-search-products-use-case'
+import { FastifyRequest, FastifyReply } from "fastify";
+import { z } from "zod";
+import { makeSearchProductsUseCase } from "@/use-cases/_factories/make-search-products-use-case";
+import { makeListProductsActiveUseCase } from "@/use-cases/_factories/make-list-products-active-use-case";
 
 export async function searchProducts(
   request: FastifyRequest,
-  reply: FastifyReply,
+  reply: FastifyReply
 ) {
   const searchQuerySchema = z.object({
-    query: z.string().min(1, 'O nome do produto é obrigatório'),
-    page: z.number().int().positive().optional().default(1),
-  })
+    query: z.string().optional().default(""),
+    page: z.coerce.number().int().positive().optional().default(1),
+  });
 
-  const { query, page } = searchQuerySchema.parse(request.query)
+  const { query, page } = searchQuerySchema.parse(request.query);
 
-  const searchProductsUseCase = makeSearchProductsUseCase()
+  if (query.trim() === "") {
+    const fetchActiveProductsUseCase = makeListProductsActiveUseCase();
+    const products = await fetchActiveProductsUseCase.execute();
+    return reply.send({ products });
+  }
 
-  const products = await searchProductsUseCase.execute({ query, page })
-
-  return reply.send({ products })
+  const searchProductsUseCase = makeSearchProductsUseCase();
+  const products = await searchProductsUseCase.execute({ query, page });
+  return reply.send({ products });
 }
