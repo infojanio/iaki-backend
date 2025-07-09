@@ -1,7 +1,5 @@
 export class LateOrderValidationError extends Error {
   constructor() {
-    super(
-      'The check-in can only be validated until 20 minutes of its creation.',
-    )
+    super("O pedido só poderá ser validado até 20 minutos após sua criação.");
   }
 }

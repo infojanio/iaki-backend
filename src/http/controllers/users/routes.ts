@@ -10,6 +10,7 @@ import { balance } from "./balance";
 import { update } from "./update";
 import { getUserLocation } from "./get-user-location";
 import { createUserLocation } from "./create-user-location";
+import { getUserAddress } from "../addresses/get-address";
 
 export async function usersRoutes(app: FastifyInstance) {
   /* Rotas acessíveis para usuário não autenticado */
@@ -18,7 +19,7 @@ export async function usersRoutes(app: FastifyInstance) {
 
   // app.put('/users/update', update)
   app.patch("/users/:userId", { onRequest: [verifyJWT] }, update);
-
+  app.get("/users/:userId/address", getUserAddress);
   app.get("/users/:userId/location", getUserLocation);
   app.post("/token/refresh", refresh); // pega o token e atualiza
   app.get("/me", { onRequest: [verifyJWT] }, profile);
