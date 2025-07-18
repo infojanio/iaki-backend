@@ -23,13 +23,13 @@ app.register(fastifyFormBody);
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET! });
 app.register(fastifyCors, {
   origin: [
+    "https://rahdar-web-production.up.railway.app",
     "http://localhost:5173", // opcional para dev local
     "https://iaki.com.br", // ✅ frontend hospedado
-    "http://rahdar-web-production.up.railway.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
+  credentials: false,
 });
 
 app.register(usersRoutes);
