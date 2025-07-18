@@ -25,7 +25,7 @@ app.register(fastifyCors, {
   origin: [
     "http://localhost:5173", // opcional para dev local
     "https://iaki.com.br", // ✅ frontend hospedado
-    "rahdar-web-production.up.railway.app",
+    "http://rahdar-web-production.up.railway.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
