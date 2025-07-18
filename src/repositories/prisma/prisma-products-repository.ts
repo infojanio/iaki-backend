@@ -116,7 +116,16 @@ export class PrismaProductsRepository implements ProductsRepository {
   }
 
   async listMany(): Promise<Product[]> {
-    const products = await prisma.product.findMany();
+    const products = await prisma.product.findMany({
+      include: {
+        subcategory: {
+          include: {
+            Category: true,
+          },
+        },
+      },
+    });
+
     return products;
   }
 

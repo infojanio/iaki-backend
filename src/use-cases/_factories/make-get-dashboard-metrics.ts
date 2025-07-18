@@ -1,4 +1,4 @@
-import { PrismaDashboardMetricsRepository } from "@/repositories/prisma/prisma-dashboard-reposiory";
+import { PrismaDashboardMetricsRepository } from "@/repositories/prisma/prisma-dashboard-repository";
 import { GetDashboardMetricsUseCase } from "../dashboard/get-dashboard-metrics";
 
 export function makeGetDashboardMetricsUseCase() {

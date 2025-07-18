@@ -16,6 +16,17 @@ export interface DashboardRepository {
       validatedAt: Date;
     }[]
   >;
-  getTopUsers(): Promise<{ name: string; total: number }[]>;
-  getTopProducts(): Promise<{ name: string; totalSold: number }[]>;
+  getTopUsers(): Promise<
+    { id: string; name: string; email: string; total: number }[]
+  >;
+  getTopProducts(): Promise<{ id: string; name: string; totalSold: number }[]>;
+  getDayOrdersAmount(params: {
+    storeId?: string;
+    userId?: string;
+  }): Promise<{ amount: number; diffFromYesterday: number }>;
+
+  getWeekOrdersAmount(params: {
+    storeId?: string;
+    userId?: string;
+  }): Promise<{ amount: number; diffFromLastWeek: number }>;
 }
