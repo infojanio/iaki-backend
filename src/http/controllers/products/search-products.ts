@@ -14,13 +14,18 @@ export async function searchProducts(
 
   const { query, page } = searchQuerySchema.parse(request.query);
 
+  const searchProductsUseCase = makeSearchProductsUseCase();
+
   if (query.trim() === "") {
     const fetchActiveProductsUseCase = makeListProductsActiveUseCase();
     const products = await fetchActiveProductsUseCase.execute();
-    return reply.send({ products });
+    return reply.send({ products, total: products.length });
   }
 
-  const searchProductsUseCase = makeSearchProductsUseCase();
-  const products = await searchProductsUseCase.execute({ query, page });
-  return reply.send({ products });
+  const { products, total } = await searchProductsUseCase.execute({
+    query,
+    page,
+  });
+
+  return reply.send({ products, total });
 }

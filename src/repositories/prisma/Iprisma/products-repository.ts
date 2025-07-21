@@ -25,7 +25,12 @@ export interface ProductsRepository {
   listMany(): Promise<Product[]>; // listar todos
   listManyProductActive(): Promise<Product[]>;
 
-  searchByName(query: string, page: number): Promise<Product[]>;
+  searchByName(
+    query: string,
+    page: number,
+    pageSize?: number
+  ): Promise<[Product[], number]>;
+
   findByQuantity(quantity: number): Promise<Product[]>; // buscar  por quantidade
   findByCashback(cashback_percentage: number): Promise<Product[]>; // buscar  % cashback
   findBySubCategory(subcategory_id: string): Promise<Product[]>; // buscar por subcategoria

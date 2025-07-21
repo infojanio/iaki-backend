@@ -1,26 +1,34 @@
-// src/use-cases/products/search-products.ts
 import { ProductsRepository } from "@/repositories/prisma/Iprisma/products-repository";
+import { Product } from "@prisma/client";
 
 interface SearchProductsUseCaseRequest {
   query: string;
   page: number;
 }
 
+interface SearchProductsUseCaseResponse {
+  products: any[]; // Substitua por `Product[]` se tiver tipado
+  total: number;
+}
+
 export class SearchProductsUseCase {
   constructor(private productsRepository: ProductsRepository) {}
 
-  async execute({ query, page }: SearchProductsUseCaseRequest) {
+  async execute({
+    query,
+    page,
+  }: SearchProductsUseCaseRequest): Promise<SearchProductsUseCaseResponse> {
     const trimmedQuery = query.trim();
 
     if (trimmedQuery === "") {
-      // Evita buscar por string vazia diretamente nesse use-case
-      return [];
+      return { products: [], total: 0 };
     }
 
-    const products = await this.productsRepository.searchByName(
+    const [products, total] = await this.productsRepository.searchByName(
       trimmedQuery,
       page
     );
-    return products;
+
+    return { products, total };
   }
 }
