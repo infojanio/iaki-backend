@@ -243,27 +243,20 @@ export class PrismaProductsRepository implements ProductsRepository {
   async searchByName(
     query: string,
     page: number,
-    pageSize: number = 20
+    pageSize = 5
   ): Promise<[Product[], number]> {
     const [products, total] = await prisma.$transaction([
       prisma.product.findMany({
         where: {
-          name: {
-            contains: query,
-            mode: "insensitive",
-          },
+          name: { contains: query, mode: "insensitive" },
           status: true,
         },
         take: pageSize,
         skip: (page - 1) * pageSize,
       }),
-
       prisma.product.count({
         where: {
-          name: {
-            contains: query,
-            mode: "insensitive",
-          },
+          name: { contains: query, mode: "insensitive" },
           status: true,
         },
       }),

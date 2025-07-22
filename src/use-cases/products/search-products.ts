@@ -4,10 +4,11 @@ import { Product } from "@prisma/client";
 interface SearchProductsUseCaseRequest {
   query: string;
   page: number;
+  pageSize: number;
 }
 
 interface SearchProductsUseCaseResponse {
-  products: any[]; // Substitua por `Product[]` se tiver tipado
+  products: Product[]; // Substitua por `Product[]` se tiver tipado
   total: number;
 }
 
@@ -17,6 +18,7 @@ export class SearchProductsUseCase {
   async execute({
     query,
     page,
+    pageSize = 5,
   }: SearchProductsUseCaseRequest): Promise<SearchProductsUseCaseResponse> {
     const trimmedQuery = query.trim();
 
@@ -26,7 +28,8 @@ export class SearchProductsUseCase {
 
     const [products, total] = await this.productsRepository.searchByName(
       trimmedQuery,
-      page
+      page,
+      pageSize
     );
 
     return { products, total };
