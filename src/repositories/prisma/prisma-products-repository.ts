@@ -249,15 +249,18 @@ export class PrismaProductsRepository implements ProductsRepository {
       prisma.product.findMany({
         where: {
           name: { contains: query, mode: "insensitive" },
-          status: true,
+          //status: true,
         },
         take: pageSize,
         skip: (page - 1) * pageSize,
+        include: {
+          subcategory: true,
+        },
       }),
       prisma.product.count({
         where: {
           name: { contains: query, mode: "insensitive" },
-          status: true,
+          // status: true,
         },
       }),
     ]);
