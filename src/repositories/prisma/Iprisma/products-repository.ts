@@ -1,6 +1,21 @@
 import { Prisma, Product } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
+// src/repositories/prisma/Iprisma/products-repository.ts
+
+export interface ProductWithNames {
+  id: string;
+  name: string;
+  description: string | null;
+  price: Prisma.Decimal;
+  quantity: Prisma.Decimal;
+  image: string | null;
+  status: boolean;
+  cashback_percentage: number;
+  subcategoryName: string | null;
+  categoryName: string | null;
+}
+
 export interface ProductsRepository {
   findByIdProduct(id: string): Promise<Product | null>;
   findProductById(id: string): Promise<Product | null>;

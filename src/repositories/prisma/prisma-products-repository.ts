@@ -253,8 +253,13 @@ export class PrismaProductsRepository implements ProductsRepository {
         },
         take: pageSize,
         skip: (page - 1) * pageSize,
+
         include: {
-          subcategory: true,
+          subcategory: {
+            include: {
+              Category: true,
+            },
+          },
         },
       }),
       prisma.product.count({

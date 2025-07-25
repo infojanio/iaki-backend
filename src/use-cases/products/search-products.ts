@@ -1,5 +1,7 @@
-import { ProductsRepository } from "@/repositories/prisma/Iprisma/products-repository";
-import { Product } from "@prisma/client";
+import {
+  ProductsRepository,
+  ProductWithCategory,
+} from "@/repositories/prisma/Iprisma/products-repository";
 
 interface SearchProductsUseCaseRequest {
   query: string;
@@ -8,7 +10,7 @@ interface SearchProductsUseCaseRequest {
 }
 
 interface SearchProductsUseCaseResponse {
-  products: Product[]; // Substitua por `Product[]` se tiver tipado
+  products: ProductWithCategory[];
   total: number;
 }
 
@@ -22,7 +24,7 @@ export class SearchProductsUseCase {
   }: SearchProductsUseCaseRequest): Promise<SearchProductsUseCaseResponse> {
     const trimmedQuery = query.trim();
 
-    if (trimmedQuery === "") {
+    if (!trimmedQuery) {
       return { products: [], total: 0 };
     }
 
