@@ -1,10 +1,19 @@
-import { prisma } from '@/lib/prisma'
-import { SubCategory, Prisma } from '@prisma/client'
-import { SubCategoriesRepository } from './Iprisma/subcategories-repository'
+import { prisma } from "@/lib/prisma";
+import { SubCategory, Prisma } from "@prisma/client";
+import { SubCategoriesRepository } from "./Iprisma/subcategories-repository";
 export class PrismaSubCategoriesRepository implements SubCategoriesRepository {
   async listMany(): Promise<SubCategory[]> {
-    const subcategories = await prisma.subCategory.findMany()
-    return subcategories
+    const subcategories = await prisma.subCategory.findMany({
+      include: {
+        Category: {
+          select: {
+            id: true,
+            name: true, // Aqui você especifica os campos que quer incluir da tabela Category
+          },
+        },
+      },
+    });
+    return subcategories;
   }
 
   async findById(id: string) {
@@ -12,8 +21,20 @@ export class PrismaSubCategoriesRepository implements SubCategoriesRepository {
       where: {
         id,
       },
-    })
-    return subcategory
+    });
+    return subcategory;
+  }
+
+  async findByIdSubCategory(id: string): Promise<SubCategory | null> {
+    const subcategory = await prisma.subCategory.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        Category: true,
+      },
+    });
+    return subcategory;
   }
 
   async findByCategory(category_id?: string): Promise<SubCategory[]> {
@@ -21,13 +42,13 @@ export class PrismaSubCategoriesRepository implements SubCategoriesRepository {
       where: {
         category_id,
       },
-    })
-    return subcategory
+    });
+    return subcategory;
   }
 
   async listByCategory(categoryId: string): Promise<SubCategory[]> {
     if (!categoryId) {
-      throw new Error('O ID da categoria é obrigatório.')
+      throw new Error("O ID da categoria é obrigatório.");
     }
 
     const subcategories = await prisma.subCategory.findMany({
@@ -42,9 +63,9 @@ export class PrismaSubCategoriesRepository implements SubCategoriesRepository {
           },
         },
       },
-    })
+    });
 
-    return subcategories
+    return subcategories;
   }
 
   async searchMany(query?: string, page: number = 1): Promise<SubCategory[]> {
@@ -53,7 +74,7 @@ export class PrismaSubCategoriesRepository implements SubCategoriesRepository {
       return await prisma.subCategory.findMany({
         skip: (page - 1) * 20,
         take: 20,
-      })
+      });
     }
 
     // Busca as categorias com base no query category_id
@@ -61,18 +82,34 @@ export class PrismaSubCategoriesRepository implements SubCategoriesRepository {
       where: {
         category_id: {
           equals: query,
-          mode: 'insensitive', // Busca case-insensitive (maíuscula ou minúscula)
+          mode: "insensitive", // Busca case-insensitive (maíuscula ou minúscula)
         },
       },
       skip: (page - 1) * 20,
       take: 20,
-    })
+    });
+  }
+
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      image?: string;
+      category_id?: string;
+    }
+  ): Promise<SubCategory> {
+    return prisma.subCategory.update({
+      where: { id },
+      data: {
+        ...data,
+      },
+    });
   }
 
   async create(data: Prisma.SubCategoryUncheckedCreateInput) {
     const subcategory = await prisma.subCategory.create({
       data,
-    })
-    return subcategory
+    });
+    return subcategory;
   }
 }
