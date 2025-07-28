@@ -27,17 +27,24 @@ export class ValidateOrderAndCreditCashbackUseCase {
       );
     }
 
-    await this.orderRepository.validateOrder(orderId);
-
     const discount = new Decimal(order.discountApplied ?? 0);
 
-    // ✅ Se o usuário usou cashback como desconto, registra apenas o débito
     if (discount.greaterThan(0)) {
-      console.log(
-        `[UseCase] Desconto aplicado via cashback: -${discount.toFixed(2)}`
+      const availableBalance = await this.cashbackRepository.getBalance(
+        order.user_id
       );
 
-      // Apenas debita cashback
+      console.log(
+        `[UseCase] Verificando saldo disponível: ${availableBalance} vs desconto: ${discount.toNumber()}`
+      );
+
+      if (availableBalance < discount.toNumber()) {
+        throw new Error(
+          "Saldo de cashback insuficiente para validar o pedido com desconto aplicado."
+        );
+      }
+
+      // ✅ Debita cashback apenas após validação do saldo
       await this.cashbackRepository.redeemCashback({
         user_id: order.user_id,
         order_id: order.id,
@@ -45,11 +52,10 @@ export class ValidateOrderAndCreditCashbackUseCase {
       });
 
       console.log(`[UseCase] Cashback debitado com sucesso.`);
-      return {
-        cashback: null,
-        message: `Cashback usado no pedido e debitado corretamente.`,
-      };
     }
+
+    // 🟩 Valida o pedido após as verificações
+    await this.orderRepository.validateOrder(orderId);
 
     // ✅ Nenhum desconto aplicado => gera crédito normalmente
     let cashbackAmount = 0;
@@ -86,7 +92,9 @@ export class ValidateOrderAndCreditCashbackUseCase {
     console.log(`[UseCase] Nenhum cashback gerado.`);
     return {
       cashback: null,
-      message: `Pedido validado, mas nenhum cashback aplicável.`,
+      message: discount.greaterThan(0)
+        ? `Cashback usado no pedido e debitado corretamente.`
+        : `Pedido validado, mas nenhum cashback aplicável.`,
     };
   }
 }

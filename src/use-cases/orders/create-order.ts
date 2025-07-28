@@ -108,6 +108,12 @@ export class OrderUseCase {
       );
     }
 
+    if (await this.ordersRepository.existsPendingOrder(user_id)) {
+      throw new Error(
+        "Você já possui um pedido pendente. Aguarde a validação antes de realizar um novo."
+      );
+    }
+
     const order = await this.ordersRepository.create({
       user_id,
       store_id,

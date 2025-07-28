@@ -115,7 +115,13 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
       select: { amount: true },
     });
 
-    return transactions.reduce((acc, tx) => acc + tx.amount, 0);
+    const total = transactions.reduce((acc, tx) => {
+      return acc + new Decimal(tx.amount).toNumber();
+    }, 0);
+
+    console.log("SALDO CORRIGIDO:", total);
+
+    return total;
   }
 
   async redeemCashback({
@@ -128,6 +134,14 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     amount: number;
   }) {
     const usedAmount = -Math.abs(amount);
+
+    // ✅ VERIFICAÇÃO DE SALDO ANTES DE CRIAR DÉBITO
+    const currentBalance = await this.getBalance(user_id);
+    if (currentBalance < Math.abs(usedAmount)) {
+      throw new Error(
+        "Saldo de cashback insuficiente para aplicar o desconto."
+      );
+    }
 
     const cashback = await prisma.cashback.create({
       data: {
