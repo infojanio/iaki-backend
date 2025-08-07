@@ -103,6 +103,37 @@ export class PrismaDashboardMetricsRepository implements DashboardRepository {
     }));
   }
 
+  async getLatestPendingOrders() {
+    const orders = await prisma.order.findMany({
+      where: { status: { equals: "PENDING" } },
+      orderBy: { created_at: "desc" },
+      take: 5,
+      include: {
+        user: true,
+        store: true,
+        CashbackTransaction: {
+          where: { type: "RECEIVE" },
+          select: { amount: true },
+        },
+      },
+    });
+
+    return orders.map((order) => ({
+      id: order.id,
+      totalAmount: Number(order.totalAmount),
+      discountApplied: Number(order.discountApplied ?? 0),
+      status: order.status,
+      user_name: order.user.name,
+      store_name: order.store.name,
+      createdAt: order.created_at,
+      validatedAt: order.validated_at ?? null,
+      cashback: order.CashbackTransaction.reduce(
+        (acc, cur) => acc + Number(cur.amount),
+        0
+      ),
+    }));
+  }
+
   async getTopUsers() {
     const raw = await prisma.cashbackTransaction.groupBy({
       by: ["user_id"],

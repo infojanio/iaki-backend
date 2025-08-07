@@ -23,8 +23,8 @@ app.register(fastifyFormBody);
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET! });
 app.register(fastifyCors, {
   origin: [
-    "https://rahdar-web-production.up.railway.app",
     "http://localhost:5173", // opcional para dev local
+    "https://rahdar-web-production.up.railway.app",
     "https://5173-infojanio-rahdarweb-e298lcjidcz.ws-us120.gitpod.io",
     "https://iaki.com.br", // ✅ frontend hospedado
   ],

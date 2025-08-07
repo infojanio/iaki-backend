@@ -9,3 +9,5 @@ app
   .then(() => {
     console.log("🚀 HTTP Server Local rodando!");
   });
+
+//  npm run start:dev
