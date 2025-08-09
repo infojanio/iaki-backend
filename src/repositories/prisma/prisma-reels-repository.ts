@@ -1,29 +1,29 @@
 import { prisma } from "@/lib/prisma";
-import { Banner, Prisma } from "@prisma/client";
-import { BannersRepository } from "./Iprisma/banners-repository";
+import { Reel, Prisma } from "@prisma/client";
+import { ReelsRepository } from "./Iprisma/reels-repository";
 import { ResourceNotFoundError } from "@/utils/messages/errors/resource-not-found-error";
-export class PrismaBannersRepository implements BannersRepository {
+export class PrismaReelsRepository implements ReelsRepository {
   async findById(id: string) {
-    const banner = await prisma.banner.findUnique({
+    const reel = await prisma.reel.findUnique({
       where: {
         id,
       },
     });
-    return banner;
+    return reel;
   }
 
-  async listMany(): Promise<Banner[]> {
-    const banners = await prisma.banner.findMany();
-    return banners;
+  async listMany(): Promise<Reel[]> {
+    const reels = await prisma.reel.findMany();
+    return reels;
   }
 
-  async findByIdBanner(id: string): Promise<Banner | null> {
-    const banner = await prisma.banner.findUnique({
+  async findByIdReel(id: string): Promise<Reel | null> {
+    const reel = await prisma.reel.findUnique({
       where: {
         id,
       },
     });
-    return banner;
+    return reel;
   }
 
   async update(
@@ -33,8 +33,8 @@ export class PrismaBannersRepository implements BannersRepository {
       image_url?: string;
       link?: string;
     }
-  ): Promise<Banner> {
-    return prisma.banner.update({
+  ): Promise<Reel> {
+    return prisma.reel.update({
       where: { id },
       data: {
         ...data,
@@ -42,17 +42,17 @@ export class PrismaBannersRepository implements BannersRepository {
     });
   }
 
-  async searchMany(query?: string, page: number = 1): Promise<Banner[]> {
+  async searchMany(query?: string, page: number = 1): Promise<Reel[]> {
     // Se o query for vazio ou não fornecido, retorna todas as categorias paginadas
     if (!query) {
-      return await prisma.banner.findMany({
+      return await prisma.reel.findMany({
         skip: (page - 1) * 20,
         take: 20,
       });
     }
 
     // Busca as categorias com base no query
-    return await prisma.banner.findMany({
+    return await prisma.reel.findMany({
       where: {
         title: {
           contains: query,
@@ -64,16 +64,16 @@ export class PrismaBannersRepository implements BannersRepository {
     });
   }
 
-  async create(data: Prisma.BannerUncheckedCreateInput) {
-    const banner = await prisma.banner.create({
+  async create(data: Prisma.ReelUncheckedCreateInput) {
+    const reel = await prisma.reel.create({
       data,
     });
-    return banner;
+    return reel;
   }
 
   async delete(id: string): Promise<void> {
     try {
-      await prisma.banner.delete({ where: { id } });
+      await prisma.reel.delete({ where: { id } });
     } catch (err) {
       // Se quiser mapear para um erro da sua camada de domínio:
       if (

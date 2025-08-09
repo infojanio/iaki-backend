@@ -193,6 +193,17 @@ model Banner {
   @@map("banners")
 }
 
+model Reel {
+  id         String   @id @default(uuid())
+  title      String
+  image_url  String
+  link       String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("reels")
+}
+
 model Category {
   id          String        @id @default(uuid())
   name        String
