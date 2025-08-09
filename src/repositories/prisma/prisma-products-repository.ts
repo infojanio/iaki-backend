@@ -236,7 +236,7 @@ export class PrismaProductsRepository implements ProductsRepository {
 
     return prisma.product.update({
       where,
-      data: { status: false }, // Marca como "deletado"
+      data: { status: false, quantity: 0 }, // Marca como "deletado"
     });
   }
 

@@ -14,6 +14,7 @@ import { subcategoriesRoutes } from "@/http/controllers/subcategories/routes";
 import { categoriesRoutes } from "./http/controllers/categories/routes";
 import { cashbacksRoutes } from "./http/controllers/cashbacks/routes";
 import { dashboardRoutes } from "./http/controllers/dashboard/routes";
+import { bannersRoutes } from "./http/controllers/banners/routes";
 
 export const app = fastify({
   // logger: true,
@@ -37,6 +38,7 @@ app.register(usersRoutes);
 app.register(cartsRoutes);
 app.register(storesRoutes);
 app.register(categoriesRoutes);
+app.register(bannersRoutes);
 app.register(cashbacksRoutes);
 app.register(subcategoriesRoutes);
 app.register(productsRoutes);
