@@ -280,6 +280,19 @@ export class PrismaOrdersRepository implements OrdersRepository {
     });
   }
 
+  async cancelOrder(orderId: string) {
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new Error("Order not found.");
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: "EXPIRED",
+        validated_at: new Date(),
+      },
+    });
+  }
+
   async getItemsByOrderId(orderId: string) {
     return prisma.orderItem.findMany({
       where: { order_id: orderId },

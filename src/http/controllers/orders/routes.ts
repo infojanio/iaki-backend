@@ -10,6 +10,7 @@ import { getOrderByOrderId } from "./order-by-orderId";
 import { getOrder } from "./get-order";
 import { validateOrderAndCreditCashback } from "../cashbacks/validate-order-and-credit-cashback";
 import { allOrdersHistory } from "./all-orders-history";
+import { cancel } from "./cancel";
 
 export async function ordersRoutes(app: FastifyInstance) {
   app.addHook("onRequest", verifyJWT);
@@ -27,6 +28,12 @@ export async function ordersRoutes(app: FastifyInstance) {
     "/orders/:orderId/validate",
     { onRequest: [verifyUserRole("ADMIN")] },
     validateOrderAndCreditCashback
+  );
+
+  app.patch(
+    "/orders/:orderId/cancel",
+    { onRequest: [verifyUserRole("ADMIN")] },
+    cancel
   );
 
   // historico de todos os pedidos
