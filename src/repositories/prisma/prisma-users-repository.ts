@@ -34,8 +34,26 @@ export class PrismaUsersRepository implements UsersRepository {
       where: {
         id,
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        role: true,
+        created_at: true,
+        passwordHash: true,
+        // NÃO selecionar passwordHash
+        address: {
+          select: {
+            street: true,
+            city: true,
+            state: true,
+            postalCode: true,
+          },
+        },
+      },
     });
-    console.log("🔍 Buscando usuário com ID:", user?.name);
 
     return user;
   }
