@@ -1,9 +1,25 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma, User } from "@prisma/client";
-import { UsersRepository } from "./Iprisma/users-repository";
+import { UserProfileDB, UsersRepository } from "./Iprisma/users-repository";
 import { ResourceNotFoundError } from "@/utils/messages/errors/resource-not-found-error";
 import { userInfo } from "os";
 import { Decimal } from "@prisma/client/runtime/library";
+
+// Select "seguro" sem passwordHash
+const userProfileSelect = Prisma.validator<Prisma.UserSelect>()({
+  id: true,
+  name: true,
+  email: true,
+  phone: true,
+  cpf: true,
+  role: true,
+  avatar: true,
+  street: true,
+  city: true,
+  state: true,
+  postalCode: true,
+  created_at: true,
+});
 
 export class PrismaUsersRepository implements UsersRepository {
   /**
@@ -16,17 +32,17 @@ export class PrismaUsersRepository implements UsersRepository {
     const user = await prisma.user.create({
       data: {
         ...data, // Inclui os dados pessoais
-
-        address: {
-          create: data.address?.create, // Relaciona o endereço
-        },
-      },
-      include: {
-        address: true, // Retorna os endereços associados ao usuário
       },
     });
 
     return user;
+  }
+
+  async findProfileById(userId: string): Promise<UserProfileDB | null> {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: userProfileSelect,
+    }) as any;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -39,19 +55,16 @@ export class PrismaUsersRepository implements UsersRepository {
         name: true,
         email: true,
         phone: true,
+        cpf: true,
         avatar: true,
         role: true,
-        created_at: true,
         passwordHash: true,
         // NÃO selecionar passwordHash
-        address: {
-          select: {
-            street: true,
-            city: true,
-            state: true,
-            postalCode: true,
-          },
-        },
+        street: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        created_at: true,
       },
     });
 

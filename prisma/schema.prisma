@@ -11,32 +11,48 @@ datasource db {
 }
 
 model User {
-  id                  String                @id @default(uuid())
-  name                String
-  email               String                @unique
-  passwordHash        String                @map("password_hash")
-  phone               String
-  role                Role                  @default(USER)
-  avatar              String?
-  address             Address[] // Relacionamento com o endereço
+  id           String  @id @default(uuid())
+  name         String
+  email        String  @unique
+  passwordHash String  @map("password_hash")
+  phone        String?
+  cpf          String?
+  role         Role    @default(USER)
+  avatar       String?
+
+  street     String?
+  city       String?
+  state      String?
+  postalCode String? @map("postal_code")
+
   orders              Order[]
   carts               Cart[]
   cashbacks           Cashback[]
-  created_at          DateTime              @default(now()) @map("created_at")
   RefreshToken        RefreshToken[]
   UserLocation        UserLocation[]
   CashbackTransaction CashbackTransaction[]
+  created_at          DateTime              @default(now()) @map("created_at")
 
   @@map("users")
 }
 
 model Store {
-  id           String        @id @default(uuid())
-  name         String
-  slug         String?
-  latitude     Decimal
-  longitude    Decimal
-  address      Address[] // Relacionamento com o endereço
+  id        String  @id @default(uuid())
+  name      String
+  slug      String?
+  latitude  Decimal
+  longitude Decimal
+
+  phone  String?
+  cnpj   String?
+  role   Role    @default(USER)
+  avatar String?
+
+  street     String?
+  city       String?
+  state      String?
+  postalCode String? @map("postal_code")
+
   products     Product[]
   orders       Order[]
   paymentTypes PaymentType[]
@@ -165,21 +181,6 @@ model CashbackTransaction {
 enum CashbackTransactionType {
   RECEIVE
   USE
-}
-
-model Address {
-  id         String   @id @default(uuid())
-  street     String
-  city       String
-  state      String
-  postalCode String   @map("postal_code")
-  created_at DateTime @default(now()) @map("created_at")
-  store_id   String?
-  user_id    String?
-  user       User?    @relation(fields: [user_id], references: [id])
-  store      Store?   @relation(fields: [store_id], references: [id])
-
-  @@map("addresses")
 }
 
 model Banner {

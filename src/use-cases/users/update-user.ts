@@ -1,19 +1,25 @@
-import { UsersRepository } from '@/repositories/prisma/Iprisma/users-repository'
-import { Role, User } from '@prisma/client'
-import { UserNotFoundError } from '../../utils/messages/errors/user-not-found-error'
-import { EmailNotUpdatedError } from '../../utils/messages/errors/email-not-updated-error'
+import { UsersRepository } from "@/repositories/prisma/Iprisma/users-repository";
+import { Role, User } from "@prisma/client";
+import { UserNotFoundError } from "../../utils/messages/errors/user-not-found-error";
+import { EmailNotUpdatedError } from "../../utils/messages/errors/email-not-updated-error";
 
 interface UpdateUserUseCaseRequest {
-  userId: string
-  name?: string
-  email?: string
-  phone?: string
-  role?: Role
-  avatar?: string
+  userId: string;
+  name?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  avatar?: string;
+  role?: Role;
+  cpf?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
 }
 
 interface UpdateUserUseCaseResponse {
-  updatedUser: User
+  updatedUser: User;
 }
 
 export class UpdateUserUseCase {
@@ -24,21 +30,21 @@ export class UpdateUserUseCase {
     ...data
   }: UpdateUserUseCaseRequest): Promise<UpdateUserUseCaseResponse> {
     // Verifica se o usuário existe
-    const existingUser = await this.usersRepository.findById(userId)
+    const existingUser = await this.usersRepository.findById(userId);
 
     // console.log('imprime o usuário ', existingUser)
     if (!existingUser) {
-      throw new UserNotFoundError()
+      throw new UserNotFoundError();
     }
 
     // Impede a atualização do e-mail
     if (data.email && data.email !== existingUser.email) {
-      throw new EmailNotUpdatedError()
+      throw new EmailNotUpdatedError();
     }
 
     // Atualiza os dados do usuário
-    const updatedUser = await this.usersRepository.update(userId, data)
+    const updatedUser = await this.usersRepository.update(userId, data);
 
-    return { updatedUser }
+    return { updatedUser };
   }
 }

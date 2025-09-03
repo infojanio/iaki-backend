@@ -1,34 +1,32 @@
-import { UsersRepository } from '@/repositories/prisma/Iprisma/users-repository'
-import { hash } from 'bcryptjs'
-import { UserAlreadyExistsError } from '../../utils/messages/errors/user-already-exists-error'
-import { Role, User } from '@prisma/client'
-import { AddressesRepository } from '@/repositories/prisma/Iprisma/addresses-repository'
+import { UsersRepository } from "@/repositories/prisma/Iprisma/users-repository";
+import { hash } from "bcryptjs";
+import { UserAlreadyExistsError } from "../../utils/messages/errors/user-already-exists-error";
+import { Role, User } from "@prisma/client";
+import { AddressesRepository } from "@/repositories/prisma/Iprisma/addresses-repository";
 
 interface RegisterUseCaseRequest {
-  id?: string
-  name: string
-  email: string
-  password: string
-  phone: string
-  avatar: string
-  role: Role
-
-  address: {
-    street: string
-    city: string
-    state: string
-    postalCode: string
-  }
+  id?: string;
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  avatar: string;
+  role: Role;
+  cpf?: string;
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
 }
 
 interface RegisterUseCaseResponse {
-  user: User
+  user: User;
 }
 
 export class RegisterUseCase {
   constructor(
     private usersRepository: UsersRepository,
-    private addressesRepository: AddressesRepository,
+    private addressesRepository: AddressesRepository
   ) {}
 
   async execute({
@@ -37,17 +35,21 @@ export class RegisterUseCase {
     email,
     password,
     phone,
+    cpf,
     avatar,
     role,
-    address,
+    city,
+    postalCode,
+    state,
+    street,
   }: RegisterUseCaseRequest): Promise<RegisterUseCaseResponse> {
     try {
-      const passwordHash = await hash(password, 6)
+      const passwordHash = await hash(password, 6);
 
-      const userWithSameEmail = await this.usersRepository.findByEmail(email)
+      const userWithSameEmail = await this.usersRepository.findByEmail(email);
 
       if (userWithSameEmail) {
-        throw new UserAlreadyExistsError()
+        throw new UserAlreadyExistsError();
       }
 
       // Cria o usuário
@@ -57,25 +59,21 @@ export class RegisterUseCase {
         email,
         passwordHash,
         phone,
+        city,
+        cpf,
+        state,
+        postalCode,
+        street,
         avatar,
         role,
-      })
+      });
 
-      // Se não existir, cria o endereço
-      await this.addressesRepository.create({
-        street: address.street,
-        city: address.city,
-        state: address.state,
-        postalCode: address.postalCode,
-        user_id: user.id,
-      })
-
-      return { user }
+      return { user };
     } catch (error) {
       if (error instanceof UserAlreadyExistsError) {
-        throw error
+        throw error;
       }
-      throw new Error('Erro inesperado ao registrar usuário e endereço')
+      throw new Error("Erro inesperado ao registrar usuário e endereço");
     }
   }
 }

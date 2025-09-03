@@ -1,13 +1,14 @@
-import { z } from 'zod' //responsável pela validação dos dados
-import { FastifyReply, FastifyRequest } from 'fastify'
-import { UserAlreadyExistsError } from '@/utils/messages/errors/user-already-exists-error'
-import { makeRegisterUseCase } from '@/use-cases/_factories/make-register-use-case'
-import { makeAddressUseCase } from '@/use-cases/_factories/make-address-use-case'
+import { z } from "zod"; //responsável pela validação dos dados
+import { FastifyReply, FastifyRequest } from "fastify";
+import { UserAlreadyExistsError } from "@/utils/messages/errors/user-already-exists-error";
+import { makeRegisterUseCase } from "@/use-cases/_factories/make-register-use-case";
+import { makeAddressUseCase } from "@/use-cases/_factories/make-address-use-case";
+import isValidCPF from "@/utils/IsValidCPF";
 
 // Definição do enum Role
 enum Role {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
+  USER = "USER",
+  ADMIN = "ADMIN",
 }
 
 export async function register(request: FastifyRequest, reply: FastifyReply) {
@@ -16,18 +17,17 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
     name: z.string(),
     email: z.string().email(),
     phone: z.string(),
-    password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+    password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
     role: z.nativeEnum(Role), // 🔹 Agora valida apenas os valores do enum
     avatar: z.string(),
-    address: z.object({
-      street: z.string(),
-      city: z.string(),
-      state: z.string(),
-      postalCode: z.string(),
-      user_id: z.string().optional(),
-      //  store_id: z.string().optional(),
+    cpf: z.string().refine(isValidCPF, {
+      message: "CPF inválido",
     }),
-  })
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    postalCode: z.string(),
+  });
 
   const {
     //id,
@@ -37,11 +37,15 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
     phone,
     role,
     avatar,
-    address,
-  } = registerBodySchema.parse(request.body)
+    city,
+    cpf,
+    postalCode,
+    state,
+    street,
+  } = registerBodySchema.parse(request.body);
 
   try {
-    const registerUseCase = makeRegisterUseCase()
+    const registerUseCase = makeRegisterUseCase();
 
     const { user } = await registerUseCase.execute({
       //id,
@@ -49,37 +53,27 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
       email,
       password,
       phone,
+      cpf,
       role,
       avatar,
-      address,
-    })
-
-    // Cria o endereço associado ao usuário
-    const createAddressUseCase = makeAddressUseCase()
-
-    const userAddress = await createAddressUseCase.execute({
-      street: address.street,
-      city: address.city,
-      state: address.state,
-      postalCode: address.postalCode,
-      // store_id: address.store_id,
-      user_id: user.id,
-    })
+      city,
+      postalCode,
+      state,
+      street,
+    });
 
     // Retorna status 201, mensagem de sucesso e os dados do usuário criado
     return reply.status(201).send({
-      message: 'Cadastro realizado com sucesso!',
+      message: "Cadastro realizado com sucesso!",
       user: {
         ...user,
         passwordHash: undefined,
       },
-
-      address: userAddress,
-    })
+    });
   } catch (error) {
     if (error instanceof UserAlreadyExistsError) {
-      return reply.status(409).send({ message: error.message })
+      return reply.status(409).send({ message: error.message });
     }
-    return reply.status(500).send({ message: 'Erro interno no servidor' })
+    return reply.status(500).send({ message: "Erro interno no servidor" });
   }
 }
