@@ -49,8 +49,5 @@ export class RedeemCashbackUseCase {
       order_id, // Vincula ao pedido que recebeu o desconto
       amount: -amount, // Valor negativo para débito
     });
-
-    // Atualiza o pedido com o desconto aplicado (opcional)
-    await this.cashbacksRepository.applyCashback(order_id, user_id, amount);
   }
 }

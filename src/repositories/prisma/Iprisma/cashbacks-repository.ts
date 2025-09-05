@@ -33,7 +33,6 @@ export interface CashbacksRepository {
     order_id: string,
     user_id: string,
     valorTotal: number,
-    percentualCashback: number,
-    saldoUsado: number
+    percentualCashback: number
   ): Promise<void>;
 }

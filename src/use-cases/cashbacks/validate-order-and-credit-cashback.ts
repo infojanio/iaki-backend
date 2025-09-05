@@ -29,6 +29,7 @@ export class ValidateOrderAndCreditCashbackUseCase {
 
     const discount = new Decimal(order.discountApplied ?? 0);
 
+    // ⚠️ Se usou cashback, verificar saldo e debitar
     if (discount.greaterThan(0)) {
       const availableBalance = await this.cashbackRepository.getBalance(
         order.user_id
@@ -44,7 +45,6 @@ export class ValidateOrderAndCreditCashbackUseCase {
         );
       }
 
-      // ✅ Debita cashback apenas após validação do saldo
       await this.cashbackRepository.redeemCashback({
         user_id: order.user_id,
         order_id: order.id,
@@ -54,47 +54,59 @@ export class ValidateOrderAndCreditCashbackUseCase {
       console.log(`[UseCase] Cashback debitado com sucesso.`);
     }
 
-    // 🟩 Valida o pedido após as verificações
+    // ✅ Valida o pedido
     await this.orderRepository.validateOrder(orderId);
 
-    // ✅ Nenhum desconto aplicado => gera crédito normalmente
-    let cashbackAmount = 0;
-
-    for (const item of order.orderItems) {
-      const itemSubtotal = new Decimal(item.subtotal ?? 0);
-      const cashbackPercent = item.product.cashback_percentage / 100;
-      const itemCashback = itemSubtotal.mul(cashbackPercent).toNumber();
-      cashbackAmount += itemCashback;
-    }
-
-    if (cashbackAmount > 0) {
-      console.log(`[UseCase] Cashback a gerar: +${cashbackAmount.toFixed(2)}`);
-
-      const cashback = await this.cashbackRepository.createCashback({
-        userId: order.user_id,
-        orderId: order.id,
-        amount: cashbackAmount,
-      });
-
-      await this.cashbackRepository.createTransaction({
-        user_id: order.user_id,
-        amount: cashbackAmount,
-        type: "RECEIVE",
-      });
-
-      console.log(`[UseCase] Cashback gerado com sucesso.`);
+    // ⚠️ NOVA REGRA: se usou desconto, não gera cashback de retorno
+    if (discount.greaterThan(0)) {
+      console.log(
+        `[UseCase] Pedido teve desconto aplicado, cashback de retorno será zero.`
+      );
       return {
-        cashback,
-        message: `Cashback de ${cashbackAmount.toFixed(2)} gerado com sucesso.`,
+        cashback: null,
+        message:
+          "Pedido validado. Cashback foi usado como desconto e não gerará novo cashback.",
       };
     }
 
-    console.log(`[UseCase] Nenhum cashback gerado.`);
-    return {
-      cashback: null,
-      message: discount.greaterThan(0)
-        ? `Cashback usado no pedido e debitado corretamente.`
-        : `Pedido validado, mas nenhum cashback aplicável.`,
-    };
+    // Percorre os itens do pedido e aplica cashback por produto
+    let totalCashbackGerado = 0;
+
+    for (const item of order.orderItems) {
+      if (!item.product || item.product.cashback_percentage === undefined) {
+        continue;
+      }
+
+      const percentual = item.product.cashback_percentage;
+      const valorTotalItem = new Decimal(item.subtotal ?? 0).toNumber();
+
+      await this.cashbackRepository.applyCashback(
+        order.id,
+        order.user_id,
+        valorTotalItem,
+        percentual
+      );
+
+      const cashbackItem = valorTotalItem * (percentual / 100);
+      totalCashbackGerado += cashbackItem;
+    }
+
+    if (totalCashbackGerado > 0) {
+      console.log(
+        `[UseCase] Cashback total gerado: R$ ${totalCashbackGerado.toFixed(2)}`
+      );
+      return {
+        cashback: totalCashbackGerado,
+        message: `Pedido validado com sucesso. Cashback de R$ ${totalCashbackGerado.toFixed(
+          2
+        )} gerado.`,
+      };
+    } else {
+      console.log(`[UseCase] Nenhum cashback gerado.`);
+      return {
+        cashback: null,
+        message: `Pedido validado. Nenhum item com cashback aplicável.`,
+      };
+    }
   }
 }

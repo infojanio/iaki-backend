@@ -169,17 +169,13 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     order_id: string,
     user_id: string,
     valorTotal: number,
-    percentualCashback: number,
-    saldoUsado: number = 0
+    percentualCashback: number
   ): Promise<void> {
-    // Valor realmente pago em dinheiro (desconta cashback usado)
-    const valorPagoEmDinheiro = Math.max(valorTotal - saldoUsado, 0);
-
-    // Cashback calculado somente sobre o valor pago em dinheiro
+    const valorPagoEmDinheiro = Math.max(valorTotal, 0);
     const cashbackGerado = valorPagoEmDinheiro * (percentualCashback / 100);
 
     if (cashbackGerado <= 0) {
-      console.log("Nenhum cashback gerado (valorPagoEmDinheiro = 0).");
+      console.log("[applyCashback] Nenhum cashback gerado (valor <= 0).");
       return;
     }
 
@@ -202,5 +198,11 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
         type: "RECEIVE",
       },
     });
+
+    console.log(
+      `[applyCashback] Cashback de ${cashbackGerado.toFixed(
+        2
+      )} gerado para o usuário ${user_id}.`
+    );
   }
 }
