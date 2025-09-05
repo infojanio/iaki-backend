@@ -8,16 +8,16 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
     userId: string
   ): Promise<CashbackTransaction[]> {
     const transactions = await prisma.cashbackTransaction.findMany({
-      where: { user_id: userId },
-      orderBy: { created_at: "desc" },
+      where: { user_id: userId }, // use camelCase se no modelo for userId
+      orderBy: { created_at: "desc" }, // camelCase
     });
 
     return transactions.map((tx) => ({
       id: tx.id,
-      user_id: tx.user_id,
-      order_id: tx.order_id,
+      user_id: userId, // camelCase do modelo
+      orderId: tx.orderId || null, // <--- camelCase aqui
       type: tx.type as "RECEIVE" | "USE",
-      amount: Number(tx.amount),
+      amount: new Decimal(tx.amount), // retorna Decimal
       created_at: tx.created_at,
     }));
   }
@@ -168,9 +168,22 @@ export class PrismaCashbacksRepository implements CashbacksRepository {
   async applyCashback(
     order_id: string,
     user_id: string,
-    amount: number
+    valorTotal: number,
+    percentualCashback: number,
+    saldoUsado: number = 0
   ): Promise<void> {
-    const decimalAmount = new Decimal(amount);
+    // Valor realmente pago em dinheiro (desconta cashback usado)
+    const valorPagoEmDinheiro = Math.max(valorTotal - saldoUsado, 0);
+
+    // Cashback calculado somente sobre o valor pago em dinheiro
+    const cashbackGerado = valorPagoEmDinheiro * (percentualCashback / 100);
+
+    if (cashbackGerado <= 0) {
+      console.log("Nenhum cashback gerado (valorPagoEmDinheiro = 0).");
+      return;
+    }
+
+    const decimalAmount = new Decimal(cashbackGerado);
 
     await prisma.cashback.create({
       data: {

@@ -32,6 +32,8 @@ export interface CashbacksRepository {
   applyCashback(
     order_id: string,
     user_id: string,
-    amount: number
+    valorTotal: number,
+    percentualCashback: number,
+    saldoUsado: number
   ): Promise<void>;
 }
