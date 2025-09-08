@@ -9,8 +9,6 @@ interface CreateOrderUseCaseRequest {
   store_id: string;
   latitude?: number;
   longitude?: number;
-  discountApplied?: number;
-  total_amount?: number | Decimal;
   useCashback?: boolean;
   items: {
     product_id: string;
@@ -35,32 +33,19 @@ export class OrderUseCase {
     private cashbacksRepository: CashbacksRepository
   ) {}
 
-  private validateDiscount(
-    discount: number,
-    subtotal: number,
-    balance: number
-  ): void {
-    if (discount < 0) throw new Error("O desconto não pode ser negativo");
-    if (discount > subtotal)
-      throw new Error("O desconto não pode exceder o subtotal do pedido");
-    if (discount > balance) throw new Error("Saldo de cashback insuficiente");
-  }
-
   async execute({
     user_id,
     store_id,
     latitude,
     longitude,
     items,
-    discountApplied = 0,
-    total_amount: expectedTotal,
     useCashback = false,
   }: CreateOrderUseCaseRequest): Promise<CreateOrderUseCaseResponse> {
     if (!items || items.length === 0) {
       throw new Error("O pedido deve conter pelo menos um item");
     }
 
-    // Buscar preços reais e calcular subtotal
+    // 🔹 1. Buscar preços reais e calcular subtotal
     let subtotal = 0;
     const validatedItems = [];
 
@@ -83,37 +68,26 @@ export class OrderUseCase {
       });
     }
 
-    const effectiveDiscount = Math.min(discountApplied, subtotal);
+    // 🔹 2. Calcular desconto corretamente
+    let effectiveDiscount = 0;
+    if (useCashback) {
+      const balance = await this.cashbacksRepository.getBalance(user_id);
+      effectiveDiscount = Math.min(balance, subtotal);
+    }
+
     const calculatedTotal = subtotal - effectiveDiscount;
 
-    if (
-      expectedTotal !== undefined &&
-      new Decimal(expectedTotal).minus(calculatedTotal).abs().greaterThan(0.01)
-    ) {
-      throw new Error("O total informado não corresponde aos itens e desconto");
-    }
-
-    if (useCashback && effectiveDiscount > 0) {
-      const balance = await this.cashbacksRepository.getBalance(user_id);
-      this.validateDiscount(effectiveDiscount, subtotal, balance);
-    }
-
+    // 🔹 3. Bloquear cashback se já houver pedido pendente
     const hasPendingOrder = await this.ordersRepository.existsPendingOrder(
       user_id
     );
-
     if (useCashback && hasPendingOrder) {
       throw new Error(
-        "Você já tem um pedido pendente. Aguarde a validação para usar seu cashback novamente."
+        "Você já possui um pedido pendente. Aguarde a validação antes de usar seu cashback novamente."
       );
     }
 
-    if (await this.ordersRepository.existsPendingOrder(user_id)) {
-      throw new Error(
-        "Você já possui um pedido pendente. Aguarde a validação antes de realizar um novo."
-      );
-    }
-
+    // 🔹 4. Criar pedido
     const order = await this.ordersRepository.create({
       user_id,
       store_id,
@@ -122,7 +96,7 @@ export class OrderUseCase {
       status: "PENDING",
     });
 
-    // ✅ Aplicar o desconto (debitar cashback do saldo do usuário)
+    // 🔹 5. Debitar cashback do usuário
     if (useCashback && effectiveDiscount > 0) {
       await this.cashbacksRepository.redeemCashback({
         user_id,
@@ -132,8 +106,10 @@ export class OrderUseCase {
     }
 
     try {
+      // Itens do pedido
       await this.ordersRepository.createOrderItems(order.id, validatedItems);
 
+      // Localização do usuário (opcional)
       if (latitude !== undefined && longitude !== undefined) {
         await this.userLocationRepository.create({
           user_id,
@@ -142,6 +118,7 @@ export class OrderUseCase {
         });
       }
 
+      // Atualizar estoque
       for (const item of validatedItems) {
         const product = await this.productsRepository.findByIdProduct(
           item.product_id

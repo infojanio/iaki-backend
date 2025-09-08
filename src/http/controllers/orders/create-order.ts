@@ -1,8 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeOrderUseCase } from "@/use-cases/_factories/make-create-order-use-case";
-import { Decimal } from "@prisma/client/runtime/library";
-import { prisma } from "@/lib/prisma";
 
 export async function createOrder(
   request: FastifyRequest,
@@ -15,7 +13,6 @@ export async function createOrder(
     store_id: z.string().uuid({ message: "ID da loja inválido" }),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    discountApplied: z.number().min(0).optional(),
     useCashback: z.boolean().optional().default(false),
     items: z
       .array(
@@ -24,7 +21,7 @@ export async function createOrder(
           quantity: z
             .number()
             .positive({ message: "Quantidade deve ser positiva" }),
-          subtotal: z.number().positive().optional(), // apenas ignorado
+          subtotal: z.number().positive().optional(), // ignorado
         })
       )
       .min(1, { message: "O pedido deve ter pelo menos um item" }),
@@ -33,30 +30,6 @@ export async function createOrder(
   try {
     const validatedData = createOrderBodySchema.parse(request.body);
 
-    const discountApplied = validatedData.discountApplied ?? 0;
-
-    // Validar saldo de cashback se necessário
-    if (validatedData.useCashback && discountApplied > 0) {
-      const validatedCashbacks = await prisma.cashback.findMany({
-        where: {
-          user_id: validatedData.user_id,
-          validated: true,
-        },
-        select: { amount: true },
-      });
-
-      const cashbackBalance = validatedCashbacks.reduce(
-        (acc, cb) => acc + new Decimal(cb.amount).toNumber(),
-        0
-      );
-
-      if (new Decimal(cashbackBalance).lessThan(discountApplied)) {
-        return reply.status(400).send({
-          message: "Saldo de cashback insuficiente para aplicar o desconto",
-        });
-      }
-    }
-
     const orderUseCase = makeOrderUseCase();
 
     const order = await orderUseCase.execute({
@@ -64,12 +37,11 @@ export async function createOrder(
       store_id: validatedData.store_id,
       latitude: validatedData.latitude,
       longitude: validatedData.longitude,
-      discountApplied: validatedData.discountApplied,
       useCashback: validatedData.useCashback,
       items: validatedData.items.map(({ product_id, quantity }) => ({
         product_id,
         quantity,
-        subtotal: 0, // será ignorado e recalculado no use-case
+        subtotal: 0, // sempre recalculado no backend
       })),
     });
 
