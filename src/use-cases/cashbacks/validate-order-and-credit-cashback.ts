@@ -30,7 +30,6 @@ export class ValidateOrderAndCreditCashbackUseCase {
     }
     const discount = new Decimal(order.discountApplied ?? 0).toDecimalPlaces(2);
 
-    // ⚠️ Se usou cashback, verificar saldo e debitar
     if (discount.greaterThan(0)) {
       const availableBalance = new Decimal(
         await this.cashbackRepository.getBalance(order.user_id)
@@ -40,9 +39,11 @@ export class ValidateOrderAndCreditCashbackUseCase {
         `[UseCase] Verificando saldo disponível: ${availableBalance.toString()} vs desconto: ${discount.toString()}`
       );
 
-      const diff = discount.minus(availableBalance).abs();
+      // converte para centavos
+      const discountCents = discount.mul(100).toDecimalPlaces(0);
+      const balanceCents = availableBalance.mul(100).toDecimalPlaces(0);
 
-      if (diff.greaterThan(EPSILON)) {
+      if (balanceCents.lessThan(discountCents)) {
         throw new Error(
           "Saldo de cashback insuficiente para validar o pedido com desconto aplicado."
         );
