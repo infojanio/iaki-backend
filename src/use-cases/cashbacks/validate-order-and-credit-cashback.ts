@@ -7,6 +7,8 @@ interface ValidateOrderAndCreditCashbackRequest {
   orderId: string;
 }
 
+const EPSILON = new Decimal(0.01); // Tolerância de 1 centavo
+
 export class ValidateOrderAndCreditCashbackUseCase {
   constructor(
     private orderRepository: OrdersRepository,
@@ -26,20 +28,21 @@ export class ValidateOrderAndCreditCashbackUseCase {
         `Pedido não está pendente. Status atual: ${order.status}`
       );
     }
-
-    const discount = new Decimal(order.discountApplied ?? 0);
+    const discount = new Decimal(order.discountApplied ?? 0).toDecimalPlaces(2);
 
     // ⚠️ Se usou cashback, verificar saldo e debitar
     if (discount.greaterThan(0)) {
-      const availableBalance = await this.cashbackRepository.getBalance(
-        order.user_id
-      );
+      const availableBalance = new Decimal(
+        await this.cashbackRepository.getBalance(order.user_id)
+      ).toDecimalPlaces(2);
 
       console.log(
-        `[UseCase] Verificando saldo disponível: ${availableBalance} vs desconto: ${discount.toNumber()}`
+        `[UseCase] Verificando saldo disponível: ${availableBalance.toString()} vs desconto: ${discount.toString()}`
       );
 
-      if (availableBalance < discount.toNumber()) {
+      const diff = discount.minus(availableBalance).abs();
+
+      if (diff.greaterThan(EPSILON)) {
         throw new Error(
           "Saldo de cashback insuficiente para validar o pedido com desconto aplicado."
         );

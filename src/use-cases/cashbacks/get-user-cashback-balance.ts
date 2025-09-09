@@ -1,13 +1,14 @@
-import { CashbacksRepository } from '@/repositories/prisma/Iprisma/cashbacks-repository'
+import { CashbacksRepository } from "@/repositories/prisma/Iprisma/cashbacks-repository";
+import { Decimal } from "@prisma/client/runtime/library";
 
 interface GetUserCashbackBalanceUseCaseRequest {
-  user_id: string
+  user_id: string;
 }
 
 interface GetUserCashbackBalanceUseCaseResponse {
-  totalReceived: number
-  totalUsed: number
-  balance: number
+  totalReceived: number;
+  totalUsed: number;
+  balance: number;
 }
 
 export class GetUserCashbackBalanceUseCase {
@@ -18,18 +19,20 @@ export class GetUserCashbackBalanceUseCase {
   }: GetUserCashbackBalanceUseCaseRequest): Promise<
     GetUserCashbackBalanceUseCaseResponse
   > {
-    const totalCashback =
+    const totalReceived = new Decimal(
       (await this.cashbacksRepository.totalCashbackByUserId(user_id)) || 0
+    );
 
-    const usedCashback =
+    const totalUsed = new Decimal(
       (await this.cashbacksRepository.totalUsedCashbackByUserId(user_id)) || 0
+    );
 
-    const balance = totalCashback - usedCashback
+    const balance = totalReceived.minus(totalUsed);
 
     return {
-      totalReceived: totalCashback,
-      totalUsed: usedCashback,
-      balance,
-    }
+      totalReceived: totalReceived.toNumber(),
+      totalUsed: totalUsed.toNumber(),
+      balance: balance.toNumber(),
+    };
   }
 }

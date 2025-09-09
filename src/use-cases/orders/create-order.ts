@@ -9,6 +9,8 @@ interface CreateOrderUseCaseRequest {
   store_id: string;
   latitude?: number;
   longitude?: number;
+  discountApplied?: number;
+  total_amount?: number | Decimal;
   useCashback?: boolean;
   items: {
     product_id: string;
@@ -33,20 +35,34 @@ export class OrderUseCase {
     private cashbacksRepository: CashbacksRepository
   ) {}
 
+  private validateDiscount(
+    discount: Decimal,
+    subtotal: Decimal,
+    balance: Decimal
+  ): void {
+    if (discount.lessThan(0))
+      throw new Error("O desconto não pode ser negativo");
+    if (discount.greaterThan(subtotal))
+      throw new Error("O desconto não pode exceder o subtotal do pedido");
+    if (discount.greaterThan(balance))
+      throw new Error("Saldo de cashback insuficiente");
+  }
+
   async execute({
     user_id,
     store_id,
     latitude,
     longitude,
     items,
+    discountApplied = 0,
+    total_amount: expectedTotal,
     useCashback = false,
   }: CreateOrderUseCaseRequest): Promise<CreateOrderUseCaseResponse> {
     if (!items || items.length === 0) {
       throw new Error("O pedido deve conter pelo menos um item");
     }
 
-    // 🔹 1. Buscar preços reais e calcular subtotal
-    let subtotal = 0;
+    let subtotal = new Decimal(0);
     const validatedItems = [];
 
     for (const item of items) {
@@ -58,58 +74,70 @@ export class OrderUseCase {
       if (item.quantity <= 0)
         throw new Error(`Quantidade inválida para o produto ${product.name}`);
 
-      const realSubtotal = product.price.toNumber() * item.quantity;
-      subtotal += realSubtotal;
+      const realSubtotal = new Decimal(product.price)
+        .mul(item.quantity)
+        .toDecimalPlaces(2);
+      subtotal = subtotal.plus(realSubtotal);
 
       validatedItems.push({
         product_id: product.id,
         quantity: item.quantity,
-        subtotal: realSubtotal,
+        subtotal: realSubtotal.toNumber(),
       });
     }
 
-    // 🔹 2. Calcular desconto corretamente
-    let effectiveDiscount = 0;
-    if (useCashback) {
-      const balance = await this.cashbacksRepository.getBalance(user_id);
-      effectiveDiscount = Math.min(balance, subtotal);
+    subtotal = subtotal.toDecimalPlaces(2);
+    const discount = new Decimal(discountApplied).toDecimalPlaces(2);
+    const effectiveDiscount = Decimal.min(discount, subtotal).toDecimalPlaces(
+      2
+    );
+    const calculatedTotal = subtotal
+      .minus(effectiveDiscount)
+      .toDecimalPlaces(2);
+
+    if (
+      expectedTotal !== undefined &&
+      new Decimal(expectedTotal).minus(calculatedTotal).abs().greaterThan(0.01)
+    ) {
+      throw new Error("O total informado não corresponde aos itens e desconto");
     }
 
-    const calculatedTotal = subtotal - effectiveDiscount;
+    if (useCashback) {
+      const balance = new Decimal(
+        await this.cashbacksRepository.getBalance(user_id)
+      ).toDecimalPlaces(2);
+      this.validateDiscount(effectiveDiscount, subtotal, balance);
+    }
 
-    // 🔹 3. Bloquear cashback se já houver pedido pendente
     const hasPendingOrder = await this.ordersRepository.existsPendingOrder(
       user_id
     );
+
     if (useCashback && hasPendingOrder) {
       throw new Error(
-        "Você já possui um pedido pendente. Aguarde a validação antes de usar seu cashback novamente."
+        "Você já tem um pedido pendente. Aguarde a validação para usar seu cashback novamente."
       );
     }
 
-    // 🔹 4. Criar pedido
     const order = await this.ordersRepository.create({
       user_id,
       store_id,
-      totalAmount: new Decimal(calculatedTotal),
+      totalAmount: calculatedTotal,
       discountApplied: effectiveDiscount,
       status: "PENDING",
     });
 
-    // 🔹 5. Debitar cashback do usuário
-    if (useCashback && effectiveDiscount > 0) {
+    if (useCashback && effectiveDiscount.greaterThan(0)) {
       await this.cashbacksRepository.redeemCashback({
         user_id,
         order_id: order.id,
-        amount: effectiveDiscount,
+        amount: effectiveDiscount.toNumber(),
       });
     }
 
     try {
-      // Itens do pedido
       await this.ordersRepository.createOrderItems(order.id, validatedItems);
 
-      // Localização do usuário (opcional)
       if (latitude !== undefined && longitude !== undefined) {
         await this.userLocationRepository.create({
           user_id,
@@ -118,23 +146,22 @@ export class OrderUseCase {
         });
       }
 
-      // Atualizar estoque
       for (const item of validatedItems) {
         const product = await this.productsRepository.findByIdProduct(
           item.product_id
         );
         if (!product) continue;
 
-        const newQuantity = product.quantity.toNumber() - item.quantity;
-        if (newQuantity < 0) {
+        const newQuantity = new Decimal(product.quantity).minus(item.quantity);
+        if (newQuantity.lessThan(0)) {
           throw new Error(
             `Estoque insuficiente para o produto ${product.name}`
           );
         }
 
         await this.productsRepository.updateQuantity(product.id, {
-          quantity: newQuantity,
-          status: newQuantity > 0,
+          quantity: newQuantity.toNumber(),
+          status: newQuantity.greaterThan(0),
         });
       }
 

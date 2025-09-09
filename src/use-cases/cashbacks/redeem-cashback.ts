@@ -25,6 +25,11 @@ export class RedeemCashbackUseCase {
       throw new Error("Saldo de cashback insuficiente.");
     }
 
+    // 🔒 Comparação segura com tolerância
+    if (balance + 0.001 < amount) {
+      throw new Error("Saldo de cashback insuficiente.");
+    }
+
     // Busca o pedido em vez do produto
     const order = await this.ordersRepository.findById(order_id);
     if (!order) {
