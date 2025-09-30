@@ -8,8 +8,8 @@ interface RegisterUseCaseRequest {
   id?: string;
   name: string;
   slug: string;
-  latitude: Decimal;
-  longitude: Decimal;
+  latitude: number;
+  longitude: number;
   phone: string;
   avatar: string;
   cnpj: string;
