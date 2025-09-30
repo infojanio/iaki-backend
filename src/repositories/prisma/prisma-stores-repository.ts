@@ -54,18 +54,22 @@ export class PrismaStoresRepository implements StoresRepository {
     return store;
   }
 
-  async create(data: Prisma.StoreCreateInput) {
-    const store = await prisma.store.create({
-      data: {
-        ...data, // Inclui os dados pessoais
-
-        address: {
-          create: data.address?.create, // Relaciona o endereço
+  //verifica se o email já existe
+  async findByCnpj(cnpj: string) {
+    const store = await prisma.store.findFirst({
+      where: {
+        cnpj: {
+          equals: cnpj,
+          mode: "insensitive", // Torna a busca insensível a maiúsculas/minúsculas
         },
       },
-      include: {
-        address: true, // Retorna os endereços associados ao usuário
-      },
+    });
+    return store;
+  }
+
+  async create(data: Prisma.StoreCreateInput) {
+    const store = await prisma.store.create({
+      data,
     });
     return store;
   }

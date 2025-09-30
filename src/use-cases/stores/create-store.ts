@@ -1,33 +1,30 @@
-import { StoresRepository } from '@/repositories/prisma/Iprisma/stores-repository'
-import { Store } from '@prisma/client'
-import { AddressesRepository } from '@/repositories/prisma/Iprisma/addresses-repository'
-import { UserAlreadyExistsError } from '../../utils/messages/errors/user-already-exists-error'
-import { StoreAlreadyExistsError } from '../../utils/messages/errors/store-already-exists-error'
+import { StoresRepository } from "@/repositories/prisma/Iprisma/stores-repository";
+import { hash } from "bcryptjs";
+import { StoreAlreadyExistsError } from "../../utils/messages/errors/store-already-exists-error";
+import { Role, Store } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
-interface CreateStoreUseCaseRequest {
-  id?: string
-  name: string
-  slug: string | null
-  latitude: number
-  longitude: number
-
-  address: {
-    street: string
-    city: string
-    state: string
-    postalCode: string
-  }
+interface RegisterUseCaseRequest {
+  id?: string;
+  name: string;
+  slug: string;
+  latitude: Decimal;
+  longitude: Decimal;
+  phone: string;
+  avatar: string;
+  cnpj: string;
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
 }
 
-interface CreateStoreUseCaseResponse {
-  store: Store
+interface RegisterUseCaseResponse {
+  store: Store;
 }
 
-export class CreateStoreUseCase {
-  constructor(
-    private storesRepository: StoresRepository,
-    private addressesRepository: AddressesRepository,
-  ) {}
+export class RegisterUseCase {
+  constructor(private storesRepository: StoresRepository) {}
 
   async execute({
     id,
@@ -35,42 +32,43 @@ export class CreateStoreUseCase {
     slug,
     latitude,
     longitude,
-    address,
-  }: CreateStoreUseCaseRequest): Promise<CreateStoreUseCaseResponse> {
+    phone,
+    avatar,
+    cnpj,
+    street,
+    city,
+    state,
+    postalCode,
+  }: RegisterUseCaseRequest): Promise<RegisterUseCaseResponse> {
     try {
-      const storeWithSameName = await this.storesRepository.findByName(name)
+      const storeWithSameCnpj = await this.storesRepository.findByCnpj(cnpj);
 
-      if (storeWithSameName) {
-        throw new StoreAlreadyExistsError()
+      if (storeWithSameCnpj) {
+        throw new StoreAlreadyExistsError();
       }
 
-      // Cria a loja
+      // Cria o usuário
       const store = await this.storesRepository.create({
         id,
         name,
-        slug,
-        latitude,
+        phone,
+        city,
         longitude,
-      })
+        latitude,
+        slug,
+        cnpj,
+        state,
+        postalCode,
+        street,
+        avatar,
+      });
 
-      // Após criar a loja, cadastra o endereço
-      await this.addressesRepository.create({
-        store_id: store.id,
-        street: address.street,
-        city: address.city,
-        state: address.state,
-        postalCode: address.postalCode,
-      })
-
-      return {
-        store,
-      }
+      return { store };
     } catch (error) {
       if (error instanceof StoreAlreadyExistsError) {
-        throw error
+        throw error;
       }
-      console.error('Erro ao criar a loja:', error)
-      throw new Error('Erro inesperado ao registrar loja e endereço')
+      throw new Error("Erro inesperado ao registrar loja");
     }
   }
 }

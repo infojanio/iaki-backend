@@ -9,6 +9,7 @@ export interface StoresRepository {
   findById(id: string): Promise<Store | null>;
   findManyNearby(params: FindManyNearbyParams): Promise<Store[]>;
   findByName(name: string): Promise<Store | null>;
+  findByCnpj(cnpj: string): Promise<Store | null>;
   create(data: Prisma.StoreCreateInput): Promise<Store>;
   searchMany(search: string, page: number): Promise<Store[]>; //buscar por nome
   listMany(): Promise<Store[]>; //listar todas

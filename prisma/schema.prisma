@@ -37,17 +37,15 @@ model User {
 }
 
 model Store {
-  id        String  @id @default(uuid())
-  name      String
-  slug      String?
-  latitude  Decimal
-  longitude Decimal
-
-  phone  String?
-  cnpj   String?
-  role   Role    @default(USER)
-  avatar String?
-
+  id         String  @id @default(uuid())
+  name       String
+  slug       String?
+  latitude   Decimal
+  longitude  Decimal
+  phone      String?
+  cnpj       String?
+  role       Role    @default(USER)
+  avatar     String?
   street     String?
   city       String?
   state      String?
